@@ -1,4 +1,4 @@
-package ssdd.p1.servidor;
+package ssdd.p1.herramientas;
 
 import java.io.InputStream;
 import java.io.IOException;
@@ -26,7 +26,7 @@ public class BlockingHTTPParser {
     public String getMethod() {
         return method;
     }
-    
+
     public String getPath() {
         return path;
     }
@@ -34,7 +34,6 @@ public class BlockingHTTPParser {
     public ByteBuffer getBody() {
         return body;
     }
-
 
     private final int START = 0;
     private final int COMPLETE = 1;
@@ -44,10 +43,12 @@ public class BlockingHTTPParser {
     private ByteBuffer body;
     private String method = "";
     private String path = "";
-//    private String remnant = "";
+    // private String remnant = "";
 
-    private Pattern methodPattern = Pattern.compile("\\s*(\\w+)\\s+(\\S+)\\s+HTTP/1.1\\s*");
-    private Pattern bodyLengthPattern = Pattern.compile("\\s*Content-Length:\\s*(\\d+)\\s*");
+    private Pattern methodPattern = Pattern
+            .compile("\\s*(\\w+)\\s+(\\S+)\\s+HTTP/1.1\\s*");
+    private Pattern bodyLengthPattern = Pattern
+            .compile("\\s*Content-Length:\\s*(\\d+)\\s*");
 
     private boolean readMethod(InputStream stream) {
         String firstLine = readLine(stream);
@@ -88,7 +89,7 @@ public class BlockingHTTPParser {
         }
         return true;
     }
-    
+
     private static String readLine(InputStream stream) {
         String result = new String("");
         do {
@@ -98,8 +99,9 @@ public class BlockingHTTPParser {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            if (nextChar == -1) return null;
-            char actualChar = (char)nextChar;
+            if (nextChar == -1)
+                return null;
+            char actualChar = (char) nextChar;
             if (actualChar == '\n')
                 return result;
             if (actualChar != '\r') {
@@ -109,4 +111,3 @@ public class BlockingHTTPParser {
         return null;
     }
 }
-

@@ -1,4 +1,4 @@
-package ssdd.p1.servidor;
+package ssdd.p1.herramientas;
 
 import java.nio.ByteBuffer;
 
@@ -23,14 +23,15 @@ public class LineParser {
 
     private int findNewLine() {
         int currentPos = buffer.position();
-        while (currentPos < buffer.limit() && !isNewLine(buffer.get(currentPos))) {
+        while (currentPos < buffer.limit()
+                && !isNewLine(buffer.get(currentPos))) {
             ++currentPos;
         }
         return currentPos;
     }
 
     private boolean isNewLine(byte c) {
-        return c == (byte)'\n' || c == (byte)'\r';
+        return c == (byte) '\n' || c == (byte) '\r';
     }
 
     /*
@@ -38,12 +39,11 @@ public class LineParser {
      */
     private void removeNewLine() {
         byte n = buffer.get();
-        if (n == (byte)'\r' && buffer.position() < buffer.limit()) {
+        if (n == (byte) '\r' && buffer.position() < buffer.limit()) {
             n = buffer.get(buffer.position());
-            if (n == (byte)'\n') {
+            if (n == (byte) '\n') {
                 buffer.get();
             }
         }
     }
 }
-

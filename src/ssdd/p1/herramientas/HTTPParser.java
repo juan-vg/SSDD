@@ -1,4 +1,4 @@
-package ssdd.p1.servidor;
+package ssdd.p1.herramientas;
 
 import java.nio.ByteBuffer;
 //import java.nio.CharBuffer;
@@ -29,7 +29,7 @@ public class HTTPParser {
     public String getMethod() {
         return method;
     }
-    
+
     public String getPath() {
         return path;
     }
@@ -37,7 +37,6 @@ public class HTTPParser {
     public ByteBuffer getBody() {
         return body;
     }
-
 
     private final int READ_METHOD = 0;
     private final int READ_HEADS = 1;
@@ -51,13 +50,15 @@ public class HTTPParser {
     private String path = "";
     private String remnant = "";
 
-    private Pattern methodPattern = Pattern.compile("\\s*(\\w+)\\s+(\\S+)\\s+HTTP/1.1\\s*");
-    private Pattern bodyLengthPattern = Pattern.compile("\\s*Content-Length:\\s*(\\d+)\\s*");
+    private Pattern methodPattern = Pattern
+            .compile("\\s*(\\w+)\\s+(\\S+)\\s+HTTP/1.1\\s*");
+    private Pattern bodyLengthPattern = Pattern
+            .compile("\\s*Content-Length:\\s*(\\d+)\\s*");
 
     private void readMethod(ByteBuffer buffer) {
         LineParser lp = new LineParser(buffer);
         String firstLine = lp.readLine();
-        //System.out.println("FIRST: "+firstLine);
+        // System.out.println("FIRST: "+firstLine);
         if (firstLine != null) {
             firstLine = remnant + firstLine;
             remnant = "";
@@ -117,4 +118,3 @@ public class HTTPParser {
         return new String(result);
     }
 }
-
