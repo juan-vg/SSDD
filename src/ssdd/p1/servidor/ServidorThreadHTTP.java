@@ -5,7 +5,7 @@
  * TIEMPO: 15 horas
  * DESCRIPCION: implementacion en la que segestiona un servidor HTTP utilizando threads.
  */
-package ssdd.p1;
+package ssdd.p1.servidor;
 
 import java.io.File;
 import java.io.PrintWriter;

@@ -1,4 +1,4 @@
-package ssdd.p1;
+package ssdd.p1.servidor;
 
 import java.io.InputStream;
 import java.io.IOException;

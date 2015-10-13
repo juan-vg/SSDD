@@ -6,7 +6,7 @@
  * DESCRIPCION: Servidor web con dos implementaciones: una usando hilos y otra
  *      utilizando la clase Selector.
  */
-package ssdd.p1;
+package ssdd.p1.servidor;
 
 import java.io.File;
 import java.io.IOException;

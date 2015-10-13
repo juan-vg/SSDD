@@ -6,7 +6,7 @@
  * DESCRIPCION: Informacion asociada a una conexion
  */
 
-package ssdd.p1;
+package ssdd.p1.servidor;
 
 import java.nio.ByteBuffer;
 import java.util.Scanner;

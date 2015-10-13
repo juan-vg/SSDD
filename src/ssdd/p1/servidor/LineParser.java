@@ -1,4 +1,4 @@
-package ssdd.p1;
+package ssdd.p1.servidor;
 
 import java.nio.ByteBuffer;
 
