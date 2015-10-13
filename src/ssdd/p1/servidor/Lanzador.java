@@ -1,3 +1,12 @@
+/*
+ * AUTORES: Juan Vela Garcia / Marta Frias Zapater
+ * NIA: 643821 / 535621
+ * FICHERO: Lanzador.java
+ * TIEMPO: 30 minutos
+ * DESCRIPCION: Lanzador de un servidor web (HTTP) con dos implementaciones:
+ *  una usando hilos y otra utilizando un Selector.
+ */
+
 package ssdd.p1.servidor;
 
 public class Lanzador {
@@ -19,10 +28,11 @@ public class Lanzador {
                 if (args[0].equals("-t")) {
                     ServidorThreadLanzador.iniciar(puerto);
 
-                    // con un selector sobre todos los clientes
+                // con un selector sobre todos los clientes
                 } else if (args[0].equals("-s")) {
                     ServidorSelector.iniciar(puerto);
 
+                // error en cualquier otro caso
                 } else {
                     System.err.println("ERROR: Opcion no valida.");
                 }

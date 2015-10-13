@@ -1,20 +1,17 @@
 /*
  * AUTORES: Juan Vela Garcia / Marta Frias Zapater
  * NIA: 643821 / 535621
- * FICHERO: ServidorHTTP.java
- * TIEMPO: 40 horas
- * DESCRIPCION: Servidor web con dos implementaciones: una usando hilos y otra
- *      utilizando la clase Selector.
+ * FICHERO: ServidorSelector.java
+ * TIEMPO: 20 horas
+ * DESCRIPCION: Servidor web usando un Selector.
  */
+
 package ssdd.p1.servidor;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
