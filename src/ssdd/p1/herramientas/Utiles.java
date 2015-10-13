@@ -75,12 +75,23 @@ public class Utiles {
         s = s.replace("í", "&iacute;");
         s = s.replace("ó", "&oacute;");
         s = s.replace("ú", "&uacute;");
+        s = s.replace("ä", "&auml;");
+        s = s.replace("ë", "&euml;");
+        s = s.replace("ï", "&iuml;");
+        s = s.replace("ö", "&ouml;");
+        s = s.replace("ü", "&uuml;");
         s = s.replace("Á", "&Aacute;");
         s = s.replace("É", "&Eacute;");
         s = s.replace("Í", "&Iacute;");
         s = s.replace("Ó", "&Oacute;");
         s = s.replace("Ú", "&Uacute;");
+        s = s.replace("Ä", "&Auml;");
+        s = s.replace("Ë", "&Euml;");
+        s = s.replace("Ï", "&Iuml;");
+        s = s.replace("Ö", "&Ouml;");
+        s = s.replace("Ü", "&Uuml;");
         s = s.replace("¡", "&iexcl;");
+        s = s.replace("¿", "&iquest;");
 
         return s;
     }

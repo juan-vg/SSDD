@@ -81,12 +81,8 @@ public class ServidorThreadRun implements Runnable {
         }
 
         // separar los parametros antes de decodificar por si se
-        // incluye
-        // el caracter '&' en el contenido de alguno
+        // incluye el caracter '&' en el contenido de alguno
         String[] params = body.split("&");
-
-        StringBuilder sb = new StringBuilder();
-        // sb.append(c);
 
         if (params.length == 2) {
             params[0] = URLDecoder.decode(params[0], "UTF-8");
@@ -102,29 +98,14 @@ public class ServidorThreadRun implements Runnable {
                 Matcher matcher = Utiles.patronRutaFichero.matcher(contP1);
 
                 if (matcher.matches()) {
-                    long t1 = System.currentTimeMillis();
-                    String contP2 = params[1]
-                            .substring(params[1].indexOf("=") + 1);
-                    System.out.println(contP2.substring(contP2.length() - 37,
-                            contP2.length() - 1));
-                    System.out.println("Substring -> "
-                            + (System.currentTimeMillis() - t1));
+                    String contP2 = params[1].substring(params[1].indexOf("=") + 1).trim();
 
-                    t1 = System.currentTimeMillis();
                     Utiles.escribeFichero(contP1, contP2);
-                    System.out.println("escribeFichero -> "
-                            + (System.currentTimeMillis() - t1));
-
-                    t1 = System.currentTimeMillis();
+                    
                     contP2 = Utiles.reEncode(contP2);
-                    System.out.println(
-                            "reEncode -> " + (System.currentTimeMillis() - t1));
-
-                    t1 = System.currentTimeMillis();
+                    
                     salida.println(Utiles.respuesta(200,
                             Utiles.cuerpoExito(contP1, contP2)));
-                    System.out.println("Respuesta 200 -> "
-                            + (System.currentTimeMillis() - t1));
                 } else {
 
                     // FORBIDDEN (403)
@@ -184,7 +165,7 @@ public class ServidorThreadRun implements Runnable {
             clientSocket.close();
 
         } catch (Exception e) {
-            System.out.printf("Error: %s", e.getMessage());
+            System.err.println("Error: " + e.getMessage());
         }
     }
 

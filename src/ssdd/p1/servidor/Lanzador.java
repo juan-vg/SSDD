@@ -10,6 +10,13 @@
 package ssdd.p1.servidor;
 
 public class Lanzador {
+    
+    private static void uso(){
+        System.out.println("Uso: <modo> <puerto>");
+        System.out.println("modo:");
+        System.out.println("-t : usando threads");
+        System.out.println("-s : usando un selector");
+    }
 
     public static void main(String[] args) {
         // TODO thread que escuche teclado, para cerrar servidor
@@ -26,23 +33,28 @@ public class Lanzador {
 
                 // con un thread por cada cliente
                 if (args[0].equals("-t")) {
+                    System.out.println("Iniciando servidor en modo thread...");
                     ServidorThreadLanzador.iniciar(puerto);
 
                 // con un selector sobre todos los clientes
                 } else if (args[0].equals("-s")) {
+                    System.out.println("Iniciando servidor en modo selector...");
                     ServidorSelector.iniciar(puerto);
 
                 // error en cualquier otro caso
                 } else {
                     System.err.println("ERROR: Opcion no valida.");
+                    uso();
                 }
 
             } catch (NumberFormatException e) {
                 System.err.println("ERROR: El puerto no es valido.");
+                uso();
             }
 
         } else {
             System.err.println("ERROR: Numero de parametros incorrecto.");
+            uso();
         }
     }
 }
