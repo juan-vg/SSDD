@@ -8,20 +8,16 @@
 
 package ssdd.p1.servidor;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
-import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
-import java.util.Scanner;
 import java.util.Set;
-import java.util.regex.Matcher;
 
 import ssdd.p1.herramientas.NonBlockingHTTPParser;
 import ssdd.p1.herramientas.Utiles;
@@ -62,15 +58,15 @@ public class ServidorSelector extends ServidorHTTP {
                         if (key.isAcceptable()) {
 
                             // ServerSocketChannel acepta conexion
-                            svrAccept(svrSockCh, selector);
+                            acepta(svrSockCh, selector);
                         } else if (key.isReadable()) {
 
                             // canal preparado para leer
-                            svrRead(key, selector);
+                            lee(key, selector);
                         } else if (key.isWritable()) {
 
                             // canal preparado para escribir
-                            svrWrite(key);
+                            escribe(key);
                         }
                         keyIt.remove();
                     }
@@ -87,7 +83,7 @@ public class ServidorSelector extends ServidorHTTP {
      * @param svrSockCh Canal asociado al servidor
      * @param selector Objeto Selector asociado a la peticion
      */
-    private static void svrAccept(ServerSocketChannel svrSockCh,
+    private static void acepta(ServerSocketChannel svrSockCh,
             Selector selector) {
 
         SocketChannel cSockCh;
@@ -119,7 +115,7 @@ public class ServidorSelector extends ServidorHTTP {
      * @param key Objeto SelectionKey asociado a la conexion
      * @param selector Objeto Selector asociado a la peticion
      */
-    private static void svrRead(SelectionKey key, Selector selector) {
+    private static void lee(SelectionKey key, Selector selector) {
 
         try {
             SocketChannel cSockCh = (SocketChannel) key.channel();
@@ -186,7 +182,7 @@ public class ServidorSelector extends ServidorHTTP {
      * 
      * @param key Objeto SelectionKey asociado a la conexion
      */
-    private static void svrWrite(SelectionKey key) {
+    private static void escribe(SelectionKey key) {
 
         SocketChannel cSockCh = (SocketChannel) key.channel();
 
@@ -197,11 +193,14 @@ public class ServidorSelector extends ServidorHTTP {
                 ByteBuffer buf = util.getBuffer();
                 buf.clear();
                 try {
+                    // escribe en el bufer
                     buf.put(util.getCuerpo(buf.capacity()).getBytes("UTF-8"));
                 } catch (UnsupportedEncodingException e) {
                     System.err.println("ERROR: Fallo al escribir en el buffer "
                             + e.getMessage());
                 }
+                
+                // cambia a modo lectura
                 buf.flip();
                 try {
                     cSockCh.write(buf);

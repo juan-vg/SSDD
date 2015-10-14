@@ -81,8 +81,27 @@ public class BlockingHTTPParser implements HTTPParser<InputStream>{
 
     private boolean readBody(InputStream stream) {
         if (body != null) {
-            try {
-                stream.read(body.array());
+            try {                
+                int pos = 0;
+                int len = body.array().length;
+                int numLeidos;
+                int numBytesTmp;
+                
+                if (len >= 1024){
+                    numBytesTmp = 1024;
+                } else {
+                    numBytesTmp = len;
+                }
+
+                byte[] tmp = new byte[numBytesTmp];
+
+                while (pos < len) {
+                    numLeidos = stream.read(tmp, 0, tmp.length);
+                    body.put(tmp, 0, numLeidos);
+                    
+                    pos += numLeidos; 
+                }
+
             } catch (IOException e) {
                 e.printStackTrace();
                 return false;

@@ -291,6 +291,8 @@ public class Utiles {
         s = s.replace("Ü", "&Uuml;");
         s = s.replace("¡", "&iexcl;");
         s = s.replace("¿", "&iquest;");
+        s = s.replace("»", "&raquo;");
+        s = s.replace("«", "&laquo;");
 
         return s;
     }

@@ -2,7 +2,6 @@ package ssdd.p1.servidor;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
@@ -14,11 +13,13 @@ import ssdd.p1.herramientas.Utiles;
 
 public abstract class ServidorHTTP {
 
+    @SuppressWarnings("rawtypes")
     protected static String httpGet(HTTPParser parser)
             throws FileNotFoundException {
         return httpGet(parser, null);
     }
 
+    @SuppressWarnings("rawtypes")
     protected static String httpGet(HTTPParser parser, Utiles util)
             throws FileNotFoundException {
 
@@ -35,17 +36,21 @@ public abstract class ServidorHTTP {
             if (matcher.matches()) {
 
                 // OK (200)
-                Scanner target = new Scanner(fichero);
-                String body = "";
+                Scanner lectorFich = new Scanner(fichero);
 
                 if (util == null) {
-                    while (target.hasNextLine()) {
-                        body += target.nextLine() + "\n";
+
+                    // lee el fichero linea a linea, por lo que se usa el
+                    // constructor de cadenas para que el proceso sea mas
+                    // eficiente
+                    StringBuilder cuerpo = new StringBuilder();
+                    while (lectorFich.hasNextLine()) {
+                        cuerpo.append(lectorFich.nextLine() + "\n");
                     }
-                    target.close();
-                    return Utiles.generaRespuesta(200, body);
+                    lectorFich.close();
+                    return Utiles.generaRespuesta(200, cuerpo.toString());
                 } else {
-                    util.setLector(target);
+                    util.setLector(lectorFich);
                     return Utiles.generaRespuesta(200, fichero.length());
                 }
             } else {
@@ -56,6 +61,7 @@ public abstract class ServidorHTTP {
         }
     }
 
+    @SuppressWarnings("rawtypes")
     protected static String httpPost(HTTPParser parser)
             throws UnsupportedEncodingException {
 
@@ -85,7 +91,7 @@ public abstract class ServidorHTTP {
 
                 if (matcher.matches()) {
                     String contP2 = params[1]
-                            .substring(params[1].indexOf("=") + 1).trim();
+                            .substring(params[1].indexOf("=") + 1);
 
                     Utiles.escribeFichero(contP1, contP2);
 

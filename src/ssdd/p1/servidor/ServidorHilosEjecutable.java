@@ -43,7 +43,7 @@ public class ServidorHilosEjecutable extends ServidorHTTP implements Runnable {
 
             // PETICION FALLIDA
             if (parser.failed()) {
-                salida.printf(Utiles.generaRespuesta(400, null));
+                salida.append(Utiles.generaRespuesta(400, null));
             }
             
             // PETICION COMPLETA
@@ -51,17 +51,17 @@ public class ServidorHilosEjecutable extends ServidorHTTP implements Runnable {
 
                 // METODO GET
                 if (parser.getMethod().equals("GET")) {
-                    salida.printf(httpGet(parser));
+                    salida.append(httpGet(parser));
                 }
                 
                 // METODO POST
                 else if (parser.getMethod().equals("POST")) {
-                    salida.printf(httpPost(parser));
+                    salida.append(httpPost(parser));
                 }
                 
                 // METODO NO IMPLEMENTADO (501)
                 else {
-                    salida.printf(Utiles.generaRespuesta(501, null));
+                    salida.append(Utiles.generaRespuesta(501, null));
                 }
             }
             
@@ -69,12 +69,16 @@ public class ServidorHilosEjecutable extends ServidorHTTP implements Runnable {
             else {
                 // No deberia ocurrir por ser una conexion bloqueante
             }
+            
+            salida.flush();
+            salida.close();
 
             // cierra conexion
             clientSocket.close();
 
         } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage());
+            System.err.println("ERROR: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
