@@ -6,7 +6,8 @@ import java.nio.ByteBuffer;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
-public class BlockingHTTPParser {
+public class BlockingHTTPParser implements HTTPParser<InputStream>{
+    
     public void parseRequest(InputStream stream) {
         if (!readMethod(stream) || !readHeaders(stream) || !readBody(stream)) {
             state = BAD_REQUEST;

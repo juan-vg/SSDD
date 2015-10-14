@@ -3,7 +3,7 @@
  * NIA: 643821 / 535621
  * FICHERO: ServidorSelector.java
  * TIEMPO: 20 horas
- * DESCRIPCION: Servidor web usando un Selector.
+ * DESCRIPCION: Servidor web (HTTP) usando un Selector.
  */
 
 package ssdd.p1.servidor;
@@ -23,17 +23,16 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.regex.Matcher;
 
-import ssdd.p1.herramientas.HTTPParser;
+import ssdd.p1.herramientas.NonBlockingHTTPParser;
 import ssdd.p1.herramientas.Utiles;
 
 /**
- * Servidor HTTP sencillo con dos implementaciones: una utilizando un solo hilo
- * y la clase Selector y otra con un hilo independiente para cada peticion
+ * Servidor HTTP sencillo utilizando la clase Selector (secuencial)
  * 
  * @author Juan Vela, Marta Frias
  *
  */
-public class ServidorSelector {
+public class ServidorSelector extends ServidorHTTP {
 
     /**
      * Version del servidor HTTP utilizando la clase Selector
@@ -92,17 +91,21 @@ public class ServidorSelector {
             Selector selector) {
 
         SocketChannel cSockCh;
+        Utiles util = new Utiles();
+        NonBlockingHTTPParser analizador = new NonBlockingHTTPParser();
+
         try {
             cSockCh = svrSockCh.accept();
 
+            // configura el socket como NO bloqueante
             cSockCh.configureBlocking(false);
-            HTTPParser parser = new HTTPParser();
 
+            // inicia fase de lectura
             SelectionKey selKey = cSockCh.register(selector,
                     SelectionKey.OP_READ);
-            Utiles utils = new Utiles();
-            utils.setParser(parser);
-            selKey.attach(utils);
+
+            util.setAnalizador(analizador);
+            selKey.attach(util);
         } catch (IOException e) {
             System.err.println(
                     "ERROR: Fallo aceptando nueva conexion " + e.getMessage());
@@ -123,117 +126,53 @@ public class ServidorSelector {
 
             if (cSockCh != null) {
 
-                Utiles utils = (Utiles) key.attachment();
-                HTTPParser parser = utils.getParser();
+                Utiles util = (Utiles) key.attachment();
+                NonBlockingHTTPParser analizador = util.getAnalizador();
                 ByteBuffer buf;
-                if (utils.getBuffer() != null) {
-                    buf = utils.getBuffer();
+                if (util.getBuffer() != null) {
+                    buf = util.getBuffer();
                 } else {
                     buf = ByteBuffer.allocate(1024);
-                    utils.setBuffer(buf);
+                    util.setBuffer(buf);
                 }
                 buf.clear();
                 cSockCh.read(buf);
                 buf.flip();
-                parser.parseRequest(buf);
 
-                if (parser.failed()) {
+                // analizar peticion
+                analizador.parseRequest(buf);
 
-                    // BAD REQUEST (400)
-                    utils.setString(Utiles.respuesta(400, null));
+                // PETICION FALLIDA (400 BAD REQUEST)
+                if (analizador.failed()) {
+                    util.setRespuesta(Utiles.generaRespuesta(400, null));
 
                     SelectionKey selKey = cSockCh.register(selector,
                             SelectionKey.OP_WRITE);
-                    selKey.attach(utils);
-                } else if (parser.isComplete()) {
+                    selKey.attach(util);
+                }
 
-                    // REQUEST COMPLETA
-                    if (parser.getMethod().equals("GET")) {
+                // PETICION COMPLETA
+                else if (analizador.isComplete()) {
 
-                        // METODO GET
-                        File path = new File("");
-                        File fichero = new File(
-                                path.getAbsolutePath() + parser.getPath());
-
-                        if (!fichero.exists()) {
-
-                            // NOT FOUND (404)
-                            utils.setString(Utiles.respuesta(404, null));
-                        } else {
-                            Matcher matcher = Utiles.patronRutaFichero
-                                    .matcher(parser.getPath());
-
-                            if (matcher.matches()) {
-
-                                // OK (200)
-                                Scanner target = new Scanner(fichero);
-                                utils.setFile(target);
-                                utils.setString(Utiles.respuesta(200, null,
-                                        fichero.length()));
-                            } else {
-
-                                // FORBIDDEN (403)
-                                utils.setString(Utiles.respuesta(403, null));
-                            }
-                        }
-                    } else if (parser.getMethod().equals("POST")) {
-
-                        // METODO POST
-                        ByteBuffer bodyBuf = parser.getBody();
-                        String body = "";
-
-                        if (bodyBuf.hasArray()) {
-                            body = new String(bodyBuf.array());
-                        }
-
-                        // separar los parametros antes de decodificar
-                        // por si se incluye
-                        // el caracter '&' en el contenido de alguno
-                        String[] params = body.split("&");
-
-                        if (params.length == 2) {
-
-                            params[0] = URLDecoder.decode(params[0], "UTF-8");
-                            params[1] = URLDecoder.decode(params[1], "UTF-8");
-                            String nomP1 = params[0].substring(0,
-                                    params[0].indexOf("="));
-                            String contP1 = params[0]
-                                    .substring(params[0].indexOf("=") + 1);
-                            String nomP2 = params[1].substring(0,
-                                    params[1].indexOf("="));
-                            String contP2 = params[1]
-                                    .substring(params[1].indexOf("=") + 1);
-
-                            if (nomP1.compareTo("fname") == 0
-                                    && nomP2.compareTo("content") == 0) {
-                                Matcher matcher = Utiles.patronRutaFichero
-                                        .matcher(contP1);
-                                if (matcher.matches()) {
-                                    Utiles.escribeFichero(contP1, contP2);
-                                    // TODO: reEncode?
-                                    utils.setString(Utiles.respuesta(200, Utiles
-                                            .cuerpoExito(contP1, contP2)));
-                                } else {
-                                    // FORBIDDEN (403)
-                                    utils.setString(
-                                            Utiles.respuesta(403, null));
-                                }
-                            } else {
-                                // BAD REQUEST (400)
-                                utils.setString(Utiles.respuesta(400, null));
-                            }
-                        } else {
-                            // BAD REQUEST (400)
-                            utils.setString(Utiles.respuesta(400, null));
-                        }
-                    } else {
-                        // NOT IMPLEMENTED (501)
-                        utils.setString(Utiles.respuesta(501, null));
+                    // METODO GET
+                    if (analizador.getMethod().equals("GET")) {
+                        util.setRespuesta(httpGet(analizador, util));
                     }
 
+                    // METODO POST
+                    else if (analizador.getMethod().equals("POST")) {
+                        util.setRespuesta(httpPost(analizador));
+                    }
+
+                    // METODO NO IMPLEMENTADO (501 NOT IMPLEMENTED)
+                    else {
+                        util.setRespuesta(Utiles.generaRespuesta(501, null));
+                    }
+
+                    // inicia fase de escritura
                     SelectionKey selKey = cSockCh.register(selector,
                             SelectionKey.OP_WRITE);
-                    selKey.attach(utils);
+                    selKey.attach(util);
                 }
             }
         } catch (Exception e) {
@@ -252,14 +191,13 @@ public class ServidorSelector {
         SocketChannel cSockCh = (SocketChannel) key.channel();
 
         if (cSockCh != null) {
-            Utiles utils = (Utiles) key.attachment();
+            Utiles util = (Utiles) key.attachment();
 
-            if (utils.hayBody()) {
-                ByteBuffer buf = utils.getBuffer();
+            if (util.isCuerpo()) {
+                ByteBuffer buf = util.getBuffer();
                 buf.clear();
                 try {
-                    buf.put(utils.getBody(buf.capacity() / 2)
-                            .getBytes("UTF-8"));
+                    buf.put(util.getCuerpo(buf.capacity()).getBytes("UTF-8"));
                 } catch (UnsupportedEncodingException e) {
                     System.err.println("ERROR: Fallo al escribir en el buffer "
                             + e.getMessage());

@@ -13,9 +13,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * Version del servidor HTTP utilizando hilos
+ * Servidor HTTP sencillo utilizando un hilo por cada nuevo cliente
+ * 
+ * @author Juan Vela, Marta Frias
+ *
  */
-public class ServidorThreadLanzador {
+public class ServidorHilosLanzador {
 
     /**
      * Metodo que permite iniciar un servidor HTTP cuyo funcionamiento se basa
@@ -45,7 +48,7 @@ public class ServidorThreadLanzador {
                 clntSock = servSock.accept();
 
                 if (clntSock != null) {
-                    ServidorThreadRun hijo = new ServidorThreadRun(clntSock);
+                    ServidorHilosEjecutable hijo = new ServidorHilosEjecutable(clntSock);
                     Thread thread = new Thread(hijo);
                     thread.run();
                 }

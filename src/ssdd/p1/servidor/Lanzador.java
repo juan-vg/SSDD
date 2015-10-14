@@ -9,9 +9,16 @@
 
 package ssdd.p1.servidor;
 
+/**
+ * Lanzador de un servidor web (HTTP) con dos implementaciones: una usando hilos
+ * y otra utilizando un Selector.
+ * 
+ * @author Juan Vela, Marta Frias
+ *
+ */
 public class Lanzador {
-    
-    private static void uso(){
+
+    private static void uso() {
         System.out.println("Uso: <modo> <puerto>");
         System.out.println("modo:");
         System.out.println("-t : usando threads");
@@ -29,30 +36,32 @@ public class Lanzador {
                 // obtener el puerto en el que debe escuchar el servidor
                 int puerto = Integer.parseInt(args[1]);
 
-                // determinar el modo de funcionamiento del servidor
+                // determinar el modo de funcionamiento del servidor:
 
-                // con un thread por cada cliente
+                // con un hilo por cada cliente
                 if (args[0].equals("-t")) {
-                    System.out.println("Iniciando servidor en modo thread...");
-                    ServidorThreadLanzador.iniciar(puerto);
-
+                    System.out.println("Iniciando servidor en modo thread");
+                    ServidorHilosLanzador.iniciar(puerto);
+                }
                 // con un selector sobre todos los clientes
-                } else if (args[0].equals("-s")) {
-                    System.out.println("Iniciando servidor en modo selector...");
+                else if (args[0].equals("-s")) {
+                    System.out.println("Iniciando servidor en modo selector");
                     ServidorSelector.iniciar(puerto);
-
+                }
                 // error en cualquier otro caso
-                } else {
+                else {
                     System.err.println("ERROR: Opcion no valida.");
                     uso();
                 }
-
-            } catch (NumberFormatException e) {
+            } 
+            // si el puerto no es un numero
+            catch (NumberFormatException e) {
                 System.err.println("ERROR: El puerto no es valido.");
                 uso();
             }
-
-        } else {
+        } 
+        // si se introducen mas o menos de dos parametros
+        else {
             System.err.println("ERROR: Numero de parametros incorrecto.");
             uso();
         }
