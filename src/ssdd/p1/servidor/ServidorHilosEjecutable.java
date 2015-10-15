@@ -43,7 +43,7 @@ public class ServidorHilosEjecutable extends ServidorHTTP implements Runnable {
 
             // PETICION FALLIDA
             if (parser.failed()) {
-                salida.append(Utiles.generaRespuesta(400, null));
+                salida.append(Utiles.generaRespuesta(400));
             }
             
             // PETICION COMPLETA
@@ -61,7 +61,7 @@ public class ServidorHilosEjecutable extends ServidorHTTP implements Runnable {
                 
                 // METODO NO IMPLEMENTADO (501)
                 else {
-                    salida.append(Utiles.generaRespuesta(501, null));
+                    salida.append(Utiles.generaRespuesta(501));
                 }
             }
             

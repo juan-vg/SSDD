@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
-import java.util.Scanner;
 import java.util.regex.Matcher;
 
 import ssdd.p1.herramientas.HTTPParser;
@@ -29,34 +28,20 @@ public abstract class ServidorHTTP {
         if (!fichero.exists()) {
 
             // NOT FOUND (404)
-            return Utiles.generaRespuesta(404, null);
+            return Utiles.generaRespuesta(404);
         } else {
             Matcher matcher = Utiles.patronRutaFichero
                     .matcher(parser.getPath());
             if (fichero.isFile() && matcher.matches()) {
 
                 // OK (200)
-                Scanner lectorFich = new Scanner(fichero);
+                
+                return Utiles.generaRespuesta(200, fichero);
 
-                if (util == null) {
-
-                    // lee el fichero linea a linea, por lo que se usa el
-                    // constructor de cadenas para que el proceso sea mas
-                    // eficiente
-                    StringBuilder cuerpo = new StringBuilder();
-                    while (lectorFich.hasNextLine()) {
-                        cuerpo.append(lectorFich.nextLine() + "\n");
-                    }
-                    lectorFich.close();
-                    return Utiles.generaRespuesta(200, cuerpo.toString());
-                } else {
-                    util.setLector(lectorFich);
-                    return Utiles.generaRespuesta(200, fichero.length());
-                }
             } else {
 
                 // FORBIDDEN (403)
-                return Utiles.generaRespuesta(403, null);
+                return Utiles.generaRespuesta(403);
             }
         }
     }
@@ -102,17 +87,17 @@ public abstract class ServidorHTTP {
                 } else {
 
                     // FORBIDDEN (403)
-                    return Utiles.generaRespuesta(403, null);
+                    return Utiles.generaRespuesta(403);
                 }
             } else {
 
                 // BAD REQUEST (400)
-                return Utiles.generaRespuesta(400, null);
+                return Utiles.generaRespuesta(400);
             }
         } else {
 
             // BAD REQUEST (400)
-            return Utiles.generaRespuesta(400, null);
+            return Utiles.generaRespuesta(400);
         }
     }
 

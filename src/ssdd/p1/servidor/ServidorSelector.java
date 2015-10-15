@@ -139,7 +139,7 @@ public class ServidorSelector extends ServidorHTTP {
 
                 // PETICION FALLIDA (400 BAD REQUEST)
                 if (analizador.failed()) {
-                    util.setRespuesta(Utiles.generaRespuesta(400, null));
+                    util.setRespuesta(Utiles.generaRespuesta(400));
 
                     SelectionKey selKey = cSockCh.register(selector,
                             SelectionKey.OP_WRITE);
@@ -161,13 +161,12 @@ public class ServidorSelector extends ServidorHTTP {
 
                     // METODO NO IMPLEMENTADO (501 NOT IMPLEMENTED)
                     else {
-                        util.setRespuesta(Utiles.generaRespuesta(501, null));
+                        util.setRespuesta(Utiles.generaRespuesta(501));
                     }
 
                     // inicia fase de escritura
                     SelectionKey selKey = cSockCh.register(selector,
                             SelectionKey.OP_WRITE);
-                    System.out.println("INI");
                     selKey.attach(util);
                 }
             }
@@ -189,35 +188,34 @@ public class ServidorSelector extends ServidorHTTP {
         if (cSockCh != null) {
             Utiles util = (Utiles) key.attachment();
 
+            // si queda algo por devolver
             if (util.isCuerpo()) {
+
                 ByteBuffer buf = util.getBuffer();
                 buf.clear();
-                try {
-                    // escribe en el bufer
-                    String cuerpo = util.getCuerpo(buf.capacity() / 2);
-                    
-                    System.out.println(cuerpo);
 
-                    byte[] ba = cuerpo.getBytes();
-                    
-                    buf.put(ba);
-                    
-                } catch (Exception e) {
-                    System.err.println("ERROR: Fallo al escribir en el buffer "
-                            + e.getMessage());
-                }
-                
+                // obtiene una porcion de respuesta
+                String cuerpo = util.getCuerpo(buf.capacity());
+
+                // escribe en el bufer
+                buf.put(cuerpo.getBytes());
+
                 // cambia a modo lectura
                 buf.flip();
+
+                // lee del bufer y escribe en el canal
                 try {
                     cSockCh.write(buf);
                 } catch (IOException e) {
                     System.err.println("ERROR: " + e.getMessage());
                     e.printStackTrace();
                 }
-            } else {
+
+            } 
+            
+            // si ya se ha acabado de devolver la respuesta
+            else {
                 key.cancel();
-                System.out.println("FIN");
                 try {
                     cSockCh.close();
                 } catch (IOException e) {
