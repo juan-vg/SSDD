@@ -36,7 +36,6 @@ public class Lanzador {
      * 
      */
     public static void main(String[] args) {
-        // TODO thread que escuche teclado, para cerrar servidor
 
         // si se recibe el numero adecuado de parametros
         if (args.length == 2) {
