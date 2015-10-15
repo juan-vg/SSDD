@@ -33,7 +33,7 @@ public abstract class ServidorHTTP {
         } else {
             Matcher matcher = Utiles.patronRutaFichero
                     .matcher(parser.getPath());
-            if (matcher.matches()) {
+            if (fichero.isFile() && matcher.matches()) {
 
                 // OK (200)
                 Scanner lectorFich = new Scanner(fichero);

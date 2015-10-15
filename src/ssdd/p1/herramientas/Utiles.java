@@ -232,6 +232,8 @@ public class Utiles {
         // -> devolver fichero
         if (isSetLector()) {
 
+            //TODO: comprobar si realmente hace falta que porcionFichero este vacio para seguir rellenando
+            
             // si no hay contenido leido que devolver, pero queda por leer
             if (porcionFichero.equals("") && !isLectorFinalizado()) {
                 porcionFichero = lector.nextLine() + "\n";

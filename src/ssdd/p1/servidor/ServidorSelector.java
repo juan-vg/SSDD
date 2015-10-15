@@ -9,7 +9,6 @@
 package ssdd.p1.servidor;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
@@ -168,6 +167,7 @@ public class ServidorSelector extends ServidorHTTP {
                     // inicia fase de escritura
                     SelectionKey selKey = cSockCh.register(selector,
                             SelectionKey.OP_WRITE);
+                    System.out.println("INI");
                     selKey.attach(util);
                 }
             }
@@ -194,8 +194,15 @@ public class ServidorSelector extends ServidorHTTP {
                 buf.clear();
                 try {
                     // escribe en el bufer
-                    buf.put(util.getCuerpo(buf.capacity()).getBytes("UTF-8"));
-                } catch (UnsupportedEncodingException e) {
+                    String cuerpo = util.getCuerpo(buf.capacity() / 2);
+                    
+                    System.out.println(cuerpo);
+
+                    byte[] ba = cuerpo.getBytes();
+                    
+                    buf.put(ba);
+                    
+                } catch (Exception e) {
                     System.err.println("ERROR: Fallo al escribir en el buffer "
                             + e.getMessage());
                 }
@@ -206,9 +213,11 @@ public class ServidorSelector extends ServidorHTTP {
                     cSockCh.write(buf);
                 } catch (IOException e) {
                     System.err.println("ERROR: " + e.getMessage());
+                    e.printStackTrace();
                 }
             } else {
                 key.cancel();
+                System.out.println("FIN");
                 try {
                     cSockCh.close();
                 } catch (IOException e) {
