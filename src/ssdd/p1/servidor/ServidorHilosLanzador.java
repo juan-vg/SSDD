@@ -24,48 +24,49 @@ public class ServidorHilosLanzador {
      * Metodo que permite iniciar un servidor HTTP cuyo funcionamiento se basa
      * en hilos
      * 
-     * @param puerto : <b>Numero</b> de puerto en el que el servidor debe
+     * @param puerto : Numero de puerto en el que el servidor debe
      *            permanecer a la escucha de nuevas conexiones
+     * 
      */
     public static void iniciar(int puerto) {
 
-        ServerSocket servSock = null;
-        Socket clntSock = null;
+        ServerSocket servidor = null;
+        Socket cliente = null;
 
-        // crea servidor en el puerto [puerto]
         try {
-            servSock = new ServerSocket(puerto);
 
-        } catch (IOException e) {
-            System.err.println("ERROR: Fallo asociando puerto: " + puerto);
-            System.exit(1);
-        }
+            // crea el socket servidor en el puerto [puerto]
+            servidor = new ServerSocket(puerto);
 
-        // espera peticiones de clientes y cede la atencion de los mismos
-        // a un hilo separado, permitiendo atender a mas clientes
-        try {
-            while (true) {
-                clntSock = servSock.accept();
+            boolean finalizar = false;
 
-                if (clntSock != null) {
-                    ServidorHilosEjecutable hijo = new ServidorHilosEjecutable(clntSock);
+            // espera peticiones de clientes y cede la atencion de los
+            // mismos a un hilo separado, permitiendo atender a mas clientes
+            // a la vez
+            while (!finalizar) {
+
+                // se bloquea en espera de nuevos clientes
+                cliente = servidor.accept();
+
+                // si llega un cliente sin errores
+                if (cliente != null) {
+
+                    // asigna cliente a nuevo hilo
+                    ServidorHilosEjecutable hijo = new ServidorHilosEjecutable(
+                            cliente);
+
+                    // comienza la ejecucion del nuevo hilo
                     Thread thread = new Thread(hijo);
-                    thread.run();
+                    thread.start();
                 }
             }
 
-        } catch (IOException e) {
-            System.err.println("ERROR: Fallo aceptando nueva conexion.");
-            System.exit(2);
-        }
-
-        // cierra el servidor
-        try {
-            servSock.close();
+            // cierra el servidor
+            servidor.close();
 
         } catch (IOException e) {
-            System.err.println("ERROR: Fallo cerrando conexion.");
-            System.exit(3);
+            System.err.println("ERROR: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

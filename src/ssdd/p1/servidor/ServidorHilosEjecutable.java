@@ -2,7 +2,7 @@
  * AUTORES: Juan Vela Garcia / Marta Frias Zapater
  * NIA: 643821 / 535621
  * FICHERO: ServidorThreadRun.java
- * TIEMPO: 25 horas
+ * TIEMPO: 1 hora
  * DESCRIPCION: Gestor de peticiones web (HTTP) en hilos separados.
  */
 
@@ -23,58 +23,67 @@ import ssdd.p1.herramientas.Utiles;
 public class ServidorHilosEjecutable extends ServidorHTTP implements Runnable {
 
     /** Atributo que hace referencia al socket asociado al cliente */
-    private Socket clientSocket;
+    private Socket cliente;
 
-    /** Metodo constructor de la clase ServidorThreadHTTP */
+    /**
+     * Metodo constructor de la clase ServidorThreadHTTP
+     * 
+     */
     public ServidorHilosEjecutable(Socket c) {
-        clientSocket = c;
+        cliente = c;
     }
 
+    /**
+     * Metodo que se ejecuta en el hilo. De forma secuencial analiza la
+     * peticion, la sirve (responde) y termina.
+     * 
+     */
     @Override
     public void run() {
         try {
-            PrintWriter salida = new PrintWriter(clientSocket.getOutputStream(),
-                    true);
+            PrintWriter salidaCliente = new PrintWriter(
+                    cliente.getOutputStream(), true);
 
-            BlockingHTTPParser parser = new BlockingHTTPParser();
-            
+            BlockingHTTPParser analizador = new BlockingHTTPParser();
+
             // analizar peticion
-            parser.parseRequest(clientSocket.getInputStream());
+            analizador.parseRequest(cliente.getInputStream());
 
             // PETICION FALLIDA
-            if (parser.failed()) {
-                salida.append(Utiles.generaRespuesta(400));
+            if (analizador.failed()) {
+                salidaCliente.append(Utiles.generaRespuesta(400));
             }
-            
+
             // PETICION COMPLETA
-            else if (parser.isComplete()) {
+            else if (analizador.isComplete()) {
 
                 // METODO GET
-                if (parser.getMethod().equals("GET")) {
-                    salida.append(httpGet(parser));
+                if (analizador.getMethod().equals("GET")) {
+                    salidaCliente.append(httpGet(analizador));
                 }
-                
+
                 // METODO POST
-                else if (parser.getMethod().equals("POST")) {
-                    salida.append(httpPost(parser));
+                else if (analizador.getMethod().equals("POST")) {
+                    salidaCliente.append(httpPost(analizador));
                 }
-                
+
                 // METODO NO IMPLEMENTADO (501)
                 else {
-                    salida.append(Utiles.generaRespuesta(501));
+                    salidaCliente.append(Utiles.generaRespuesta(501));
                 }
             }
-            
+
             // REQUEST NO COMPLETA
             else {
                 // No deberia ocurrir por ser una conexion bloqueante
             }
-            
-            salida.flush();
-            salida.close();
+
+            // fuerza escritura de lo que quede y finaliza el escritor
+            salidaCliente.flush();
+            salidaCliente.close();
 
             // cierra conexion
-            clientSocket.close();
+            cliente.close();
 
         } catch (Exception e) {
             System.err.println("ERROR: " + e.getMessage());

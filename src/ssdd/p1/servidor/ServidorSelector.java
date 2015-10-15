@@ -30,120 +30,182 @@ import ssdd.p1.herramientas.Utiles;
 public class ServidorSelector extends ServidorHTTP {
 
     /**
-     * Version del servidor HTTP utilizando la clase Selector
+     * Metodo que permite iniciar un servidor HTTP cuyo funcionamiento se basa
+     * en un selector
+     * 
+     * @param puerto : Numero de puerto en el que el servidor debe permanecer a
+     *            la escucha de nuevas conexiones
+     * 
      */
     public static void iniciar(int puerto) {
 
         try {
-            ServerSocketChannel svrSockCh = ServerSocketChannel.open();
-            svrSockCh.configureBlocking(false);
-            svrSockCh.socket().bind(new InetSocketAddress(puerto));
 
+            boolean finalizar = false;
+
+            // crear el socket servidor en el puerto [puerto]
+            // y configurarlo como NO BLOQUEANTE
+            ServerSocketChannel servidor = ServerSocketChannel.open();
+            servidor.configureBlocking(false);
+            servidor.socket().bind(new InetSocketAddress(puerto));
+
+            // crear un selector y registrar el socket del servidor en dicho
+            // selector con la operacion aceptar (clientes)
             Selector selector = Selector.open();
-            svrSockCh.register(selector, SelectionKey.OP_ACCEPT);
+            servidor.register(selector, SelectionKey.OP_ACCEPT);
 
-            while (true) {
-                int numCh = selector.select();
+            while (!finalizar) {
 
-                if (numCh > 0) {
+                // se bloquea en espera de nuevas operaciones
+                int numOperacionesDisponibles = selector.select();
 
-                    // Hay canales disponibles
-                    Set<SelectionKey> selKeys = selector.selectedKeys();
-                    Iterator<SelectionKey> keyIt = selKeys.iterator();
+                // si se reciben operaciones
+                // (puede desbloquearse sin recibir operaciones)
+                if (numOperacionesDisponibles > 0) {
 
-                    while (keyIt.hasNext()) {
-                        SelectionKey key = keyIt.next();
+                    // obtener las operaciones y un iterador para recorrerlas
+                    Set<SelectionKey> operaciones = selector.selectedKeys();
+                    Iterator<SelectionKey> iteradorOps = operaciones.iterator();
 
-                        if (key.isAcceptable()) {
+                    // mientras queden operaciones por procesar
+                    while (iteradorOps.hasNext()) {
 
-                            // ServerSocketChannel acepta conexion
-                            acepta(svrSockCh, selector);
-                        } else if (key.isReadable()) {
+                        SelectionKey operacion = iteradorOps.next();
 
-                            // canal preparado para leer
-                            lee(key, selector);
-                        } else if (key.isWritable()) {
+                        // si la operacion consiste en aceptar un nuevo cliente
+                        if (operacion.isAcceptable()) {
 
-                            // canal preparado para escribir
-                            escribe(key);
+                            acepta(servidor, selector);
                         }
-                        keyIt.remove();
+
+                        // si la operacion consiste en recibir informacion de un
+                        // cliente
+                        else if (operacion.isReadable()) {
+
+                            lee(operacion, selector);
+                        }
+
+                        // si la operacion consiste en enviar informacion a un
+                        // cliente
+                        else if (operacion.isWritable()) {
+
+                            escribe(operacion);
+                        }
+
+                        // eliminar la operacion que se acaba de atender
+                        iteradorOps.remove();
                     }
                 }
             }
+
+            // cerrar el servidor
+            selector.close();
+            servidor.close();
+
         } catch (IOException e) {
             System.err.println("ERROR: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     /**
-     * Metodo auxiliar de serverSelector que acepta peticiones HTTP
+     * Metodo auxiliar que acepta nuevos clientes
      * 
-     * @param svrSockCh Canal asociado al servidor
-     * @param selector Objeto Selector asociado a la peticion
+     * @param servidor : Canal asociado al servidor
+     * @param selector : Selector del servidor
+     * 
      */
-    private static void acepta(ServerSocketChannel svrSockCh,
+    private static void acepta(ServerSocketChannel servidor,
             Selector selector) {
 
-        SocketChannel cSockCh;
+        SocketChannel cliente;
         Utiles util = new Utiles();
         NonBlockingHTTPParser analizador = new NonBlockingHTTPParser();
 
         try {
-            cSockCh = svrSockCh.accept();
 
-            // configura el socket como NO bloqueante
-            cSockCh.configureBlocking(false);
+            // aceptar nuevo cliente
+            cliente = servidor.accept();
 
-            // inicia fase de lectura
-            SelectionKey selKey = cSockCh.register(selector,
+            // configurar el socket cliente como NO BLOQUEANTE
+            cliente.configureBlocking(false);
+
+            // iniciar fase de lectura
+            // (registrar operacion de leer en el selector)
+            SelectionKey operacion = cliente.register(selector,
                     SelectionKey.OP_READ);
 
+            // adjuntar los datos necesarios a la operacion
             util.setAnalizador(analizador);
-            selKey.attach(util);
+            operacion.attach(util);
+
         } catch (IOException e) {
-            System.err.println(
-                    "ERROR: Fallo aceptando nueva conexion " + e.getMessage());
+            System.err.println("ERROR: Fallo aceptando nueva conexion");
+            e.printStackTrace();
         }
     }
 
     /**
-     * Metodo auxiliar del metodo serverSelector que lee y procesa peticiones
-     * HTTP cuando el canal esta preparado para leer.
+     * Metodo auxiliar que lee y procesa peticiones HTTP cuando el canal esta
+     * preparado para leer.
      * 
-     * @param key Objeto SelectionKey asociado a la conexion
-     * @param selector Objeto Selector asociado a la peticion
+     * @param operacion : Operacion a realizar
+     * @param selector : Selector del servidor
+     * 
      */
-    private static void lee(SelectionKey key, Selector selector) {
+    private static void lee(SelectionKey operacion, Selector selector) {
 
         try {
-            SocketChannel cSockCh = (SocketChannel) key.channel();
 
-            if (cSockCh != null) {
+            // obtener el cliente a partir de la operacion
+            SocketChannel cliente = (SocketChannel) operacion.channel();
 
-                Utiles util = (Utiles) key.attachment();
+            // si el cliente no tiene errores
+            if (cliente != null) {
+
+                // obtener los datos adjuntos
+                Utiles util = (Utiles) operacion.attachment();
                 NonBlockingHTTPParser analizador = util.getAnalizador();
-                ByteBuffer buf;
+                ByteBuffer bufer;
+
+                // si ya habia un bufer creado
                 if (util.getBuffer() != null) {
-                    buf = util.getBuffer();
-                } else {
-                    buf = ByteBuffer.allocate(1024);
-                    util.setBuffer(buf);
+
+                    // obtener el bufer y reutilizarlo
+                    bufer = util.getBuffer();
                 }
-                buf.clear();
-                cSockCh.read(buf);
-                buf.flip();
+
+                // si no habia ningun bufer creado
+                else {
+
+                    // crear un nuevo buffer
+                    bufer = ByteBuffer.allocate(1024);
+                    util.setBuffer(bufer);
+                }
+
+                // limpiar y reiniciar el bufer
+                bufer.clear();
+
+                // recibir datos del cliente y escribirlos en el bufer
+                cliente.read(bufer);
+
+                // cambiar el bufer a modo lectura
+                bufer.flip();
 
                 // analizar peticion
-                analizador.parseRequest(buf);
+                analizador.parseRequest(bufer);
 
                 // PETICION FALLIDA (400 BAD REQUEST)
                 if (analizador.failed()) {
                     util.setRespuesta(Utiles.generaRespuesta(400));
 
-                    SelectionKey selKey = cSockCh.register(selector,
+                    // iniciar fase de escritura
+                    // (registrar operacion de escribir en el selector)
+                    SelectionKey nuevaOperacion = cliente.register(selector,
                             SelectionKey.OP_WRITE);
-                    selKey.attach(util);
+
+                    // adjuntar los datos necesarios a la nueva operacion
+                    nuevaOperacion.attach(util);
                 }
 
                 // PETICION COMPLETA
@@ -151,7 +213,7 @@ public class ServidorSelector extends ServidorHTTP {
 
                     // METODO GET
                     if (analizador.getMethod().equals("GET")) {
-                        util.setRespuesta(httpGet(analizador, util));
+                        util.setRespuesta(httpGet(analizador));
                     }
 
                     // METODO POST
@@ -164,10 +226,13 @@ public class ServidorSelector extends ServidorHTTP {
                         util.setRespuesta(Utiles.generaRespuesta(501));
                     }
 
-                    // inicia fase de escritura
-                    SelectionKey selKey = cSockCh.register(selector,
+                    // iniciar fase de escritura
+                    // (registrar operacion de escribir en el selector)
+                    SelectionKey nuevaOperacion = cliente.register(selector,
                             SelectionKey.OP_WRITE);
-                    selKey.attach(util);
+
+                    // adjuntar los datos necesarios a la nueva operacion
+                    nuevaOperacion.attach(util);
                 }
             }
         } catch (Exception e) {
@@ -179,45 +244,59 @@ public class ServidorSelector extends ServidorHTTP {
      * Metodo auxiliar del metodo serverSelector que escribe peticiones HTTP
      * cuando el canal esta preparado para escribir.
      * 
-     * @param key Objeto SelectionKey asociado a la conexion
+     * @param operacion : Operacion a realizar
+     * 
      */
-    private static void escribe(SelectionKey key) {
+    private static void escribe(SelectionKey operacion) {
 
-        SocketChannel cSockCh = (SocketChannel) key.channel();
+        // obtener el cliente a partir de la operacion
+        SocketChannel cliente = (SocketChannel) operacion.channel();
 
-        if (cSockCh != null) {
-            Utiles util = (Utiles) key.attachment();
+        // sie el cliente no tiene errores
+        if (cliente != null) {
 
-            // si queda algo por devolver
-            if (util.isCuerpo()) {
+            // obtener los datos adjuntos
+            Utiles util = (Utiles) operacion.attachment();
 
-                ByteBuffer buf = util.getBuffer();
-                buf.clear();
+            // si hay informacion que enviar al cliente
+            if (util.quedaCuerpo()) {
 
-                // obtiene una porcion de respuesta
-                String cuerpo = util.getCuerpo(buf.capacity());
+                // obtener el bufer y reutilizarlo
+                ByteBuffer bufer = util.getBuffer();
 
-                // escribe en el bufer
-                buf.put(cuerpo.getBytes());
+                // limpiar y reiniciar el bufer
+                bufer.clear();
 
-                // cambia a modo lectura
-                buf.flip();
+                // obtener una porcion de respuesta
+                String cuerpo = util.getCuerpo(bufer.capacity());
 
-                // lee del bufer y escribe en el canal
+                // escribir en el bufer
+                bufer.put(cuerpo.getBytes());
+
+                // cambia el bufer a modo lectura
+                bufer.flip();
+
                 try {
-                    cSockCh.write(buf);
+
+                    // enviar al cliente los datos leidos del bufer
+                    cliente.write(bufer);
+
                 } catch (IOException e) {
                     System.err.println("ERROR: " + e.getMessage());
                     e.printStackTrace();
                 }
+            }
 
-            } 
-            
-            // si ya se ha acabado de devolver la respuesta
+            // si no queda nada por devolver, y por lo tanto se ha terminado de
+            // atender la operacion
             else {
-                key.cancel();
+
+                // dar por terminada la operacion
+                operacion.cancel();
+
+                // cerrar conexion con el cliente
                 try {
-                    cSockCh.close();
+                    cliente.close();
                 } catch (IOException e) {
                     System.err.println("ERROR: Fallo cerrando conexion. "
                             + e.getMessage());

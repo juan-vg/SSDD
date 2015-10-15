@@ -18,6 +18,10 @@ package ssdd.p1.servidor;
  */
 public class Lanzador {
 
+    /**
+     * Imprime por pantalla las opciones de ejecucion disponibles.
+     * 
+     */
     private static void uso() {
         System.out.println("Uso: <modo> <puerto>");
         System.out.println("modo:");
@@ -25,6 +29,12 @@ public class Lanzador {
         System.out.println("-s : usando un selector");
     }
 
+    /**
+     * En funcion de los parametros introducidos, se inicia una u otra version
+     * del servidor HTTP (hilos o selector). Si surge algun error se informa de
+     * ello por pantalla, adjuntando unas breves instrucciones de uso.
+     * 
+     */
     public static void main(String[] args) {
         // TODO thread que escuche teclado, para cerrar servidor
 
@@ -53,13 +63,13 @@ public class Lanzador {
                     System.err.println("ERROR: Opcion no valida.");
                     uso();
                 }
-            } 
+            }
             // si el puerto no es un numero
             catch (NumberFormatException e) {
                 System.err.println("ERROR: El puerto no es valido.");
                 uso();
             }
-        } 
+        }
         // si se introducen mas o menos de dos parametros
         else {
             System.err.println("ERROR: Numero de parametros incorrecto.");

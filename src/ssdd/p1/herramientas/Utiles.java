@@ -9,7 +9,6 @@
 package ssdd.p1.herramientas;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.Scanner;
@@ -28,24 +27,35 @@ public class Utiles {
      * Atributo que almacena un objeto Pattern. Se emplea para verificar que la
      * ruta al fichero solicitado cumple el requisito de estar en la misma
      * localizacion que el servidor
+     * 
      */
     public static final Pattern patronRutaFichero = Pattern
             .compile("[/]?[a-zA-Z0-9_-]+(.[a-zA-Z0-9]+)?");
 
     /**
-     * Atributo que almacena un objeto HTTPParser. Solo se utiliza cuando el
-     * servidor funciona en modo selector (no bloqueante)
+     * Atributo que almacena un analizador HTTP (y su estado). Solo se utiliza
+     * cuando el servidor funciona en modo selector (no bloqueante)
+     * 
      */
     private NonBlockingHTTPParser analizador;
 
-    /** Atributo que almacena un objeto ByteBuffer */
+    /**
+     * Atributo que almacena un bufer. Solo se utiliza cuando el servidor
+     * funciona en modo selector (no bloqueante)
+     * 
+     */
     private ByteBuffer bufer;
 
-    /** Atributo que almacena un objeto String */
+    /**
+     * Atributo que almacena la respuesta que se debe enviar al cliente. Solo se
+     * utiliza cuando el servidor funciona en modo selector (no bloqueante)
+     * 
+     */
     private String respuesta;
 
     /**
      * Metodo constructor de la clase. Crea un objeto con los atributos vacios.
+     * 
      */
     public Utiles() {
         analizador = null;
@@ -54,67 +64,79 @@ public class Utiles {
     }
 
     /**
-     * Metodo que actualiza la referencia del atributo parser
+     * Almacena un nuevo analizador HTTP. Solo se utiliza cuando el servidor
+     * funciona en modo selector (no bloqueante)
      * 
-     * @param p Objeto HTTPParser
+     * @param analizador : Analizador HTTP
+     * 
      */
-    public void setAnalizador(NonBlockingHTTPParser p) {
-        analizador = p;
+    public void setAnalizador(NonBlockingHTTPParser analizador) {
+        this.analizador = analizador;
     }
 
     /**
-     * Metodo que actualiza la referencia del atributo buf
+     * Almacena un nuevo bufer ByteBuffer. Solo se utiliza cuando el servidor
+     * funciona en modo selector (no bloqueante)
      * 
-     * @param b Objeto ByteBufer
+     * @param bufer : Bufer ByteBuffer
+     * 
      */
-    public void setBuffer(ByteBuffer b) {
-        bufer = b;
+    public void setBuffer(ByteBuffer bufer) {
+        this.bufer = bufer;
     }
 
     /**
-     * Metodo que actualiza la referencia del atributo string
+     * Almacena una nueva respuesta para el cliente. Solo se utiliza cuando el
+     * servidor funciona en modo selector (no bloqueante)
      * 
-     * @param s Cadena de texto
+     * @param respuesta : Cadena que contiene la respuesta para el cliente
+     * 
      */
-    public void setRespuesta(String s) {
-        respuesta = s;
+    public void setRespuesta(String respuesta) {
+        this.respuesta = respuesta;
     }
 
     /**
-     * Metodo que devuelve el valor del atributo parser
+     * Devuelve el analizador HTTP asociado. Solo se utiliza cuando el servidor
+     * funciona en modo selector (no bloqueante)
      * 
-     * @return HTTPParser asociado al objeto Utils
+     * @return Analizador HTTP
+     * 
      */
     public NonBlockingHTTPParser getAnalizador() {
         return analizador;
     }
 
     /**
-     * Metodo que devuelve el valor del atributo buf
+     * Devuelve el bufer asociado. Solo se utiliza cuando el servidor funciona
+     * en modo selector (no bloqueante)
      * 
-     * @return ByteBuffer asociado al objeto Utils
+     * @return bufer ByteBuffer
+     * 
      */
     public ByteBuffer getBuffer() {
         return bufer;
     }
 
     /**
-     * Metodo que devuelve true si y solo si el atributo str es diferente de
-     * null.
+     * Devuelve cierto si y solo si se ha establecido una respuesta (valida)
+     * para el cliente. Solo se utiliza cuando el servidor funciona en modo
+     * selector (no bloqueante)
      * 
-     * @return true si el atributo str no es null
+     * @return cierto si se ha establecido una respuesta valida
      */
     public boolean isSetRespuesta() {
         return respuesta != null;
     }
 
     /**
-     * Metodo que comprueba si queda informacion por escribir del cuerpo de la
-     * respuesta
+     * Comprueba si quedan datos por enviar al cliente. Solo se utiliza cuando
+     * el servidor funciona en modo selector (no bloqueante)
      * 
-     * @return true si queda informacion por escribir
+     * @return cierto si quedan datos por enviar al cliente
+     * 
      */
-    public boolean isCuerpo() {
+    public boolean quedaCuerpo() {
 
         // si hay una respuesta que devolver
         if (isSetRespuesta()) {
@@ -130,19 +152,21 @@ public class Utiles {
     }
 
     /**
-     * Metodo que devuelve una cadena de texto de longitud maxima [max]
-     * correspondiente a parte del cuerpo de la respuesta
+     * Devuelve una cadena de texto de longitud maxima [max] correspondiente a
+     * parte del cuerpo de la respuesta. Solo se utiliza cuando el servidor
+     * funciona en modo selector (no bloqueante)
      * 
-     * @param max Longitud maxima de la cadena a devolver
+     * @param maxLong : Longitud maxima de la cadena a devolver
      * @return Cadena de texto correspondiente a parte del cuerpo de la
      *         respuesta
+     * 
      */
     public String getCuerpo(int maxLong) {
 
         String parteRespuesta = "";
 
         // si queda contenido por devolver
-        if (isCuerpo()) {
+        if (quedaCuerpo()) {
 
             // y ademas su longitud no supera el limite [maxLong]
             // -> devuelve todo su contenido
@@ -164,67 +188,72 @@ public class Utiles {
         return null;
     }
 
-    /**
-     * Metodo auxiliar que sustituye una serie de caracteres problematicos en
-     * HTML (vocales con acento, apertura de exclamacion, ...)
-     * 
-     * @param s Cadena de texto que se quiere recodificar
-     * @return Cadena de texto recodificada en formato html
-     */
-    public static String reEncode(String s) {
-        s = s.replace("ñ", "&ntilde;");
-        s = s.replace("Ñ", "&Ntilde;");
-        s = s.replace("á", "&aacute;");
-        s = s.replace("é", "&eacute;");
-        s = s.replace("í", "&iacute;");
-        s = s.replace("ó", "&oacute;");
-        s = s.replace("ú", "&uacute;");
-        s = s.replace("ä", "&auml;");
-        s = s.replace("ë", "&euml;");
-        s = s.replace("ï", "&iuml;");
-        s = s.replace("ö", "&ouml;");
-        s = s.replace("ü", "&uuml;");
-        s = s.replace("Á", "&Aacute;");
-        s = s.replace("É", "&Eacute;");
-        s = s.replace("Í", "&Iacute;");
-        s = s.replace("Ó", "&Oacute;");
-        s = s.replace("Ú", "&Uacute;");
-        s = s.replace("Ä", "&Auml;");
-        s = s.replace("Ë", "&Euml;");
-        s = s.replace("Ï", "&Iuml;");
-        s = s.replace("Ö", "&Ouml;");
-        s = s.replace("Ü", "&Uuml;");
-        s = s.replace("¡", "&iexcl;");
-        s = s.replace("¿", "&iquest;");
-        s = s.replace("»", "&raquo;");
-        s = s.replace("«", "&laquo;");
+    // METODOS COMUNES (ESTATICOS) A TODAS LAS IMPLEMENTACIONES
 
-        return s;
+    /**
+     * Sustituye una serie de caracteres problematicos en HTML (vocales con
+     * acento, apertura de exclamacion, ...)
+     * 
+     * @param texto : Cadena de texto que se quiere recodificar
+     * @return Cadena de texto recodificada en formato html
+     * 
+     */
+    public static String reEncode(String texto) {
+        texto = texto.replace("ñ", "&ntilde;");
+        texto = texto.replace("Ñ", "&Ntilde;");
+        texto = texto.replace("á", "&aacute;");
+        texto = texto.replace("é", "&eacute;");
+        texto = texto.replace("í", "&iacute;");
+        texto = texto.replace("ó", "&oacute;");
+        texto = texto.replace("ú", "&uacute;");
+        texto = texto.replace("ä", "&auml;");
+        texto = texto.replace("ë", "&euml;");
+        texto = texto.replace("ï", "&iuml;");
+        texto = texto.replace("ö", "&ouml;");
+        texto = texto.replace("ü", "&uuml;");
+        texto = texto.replace("Á", "&Aacute;");
+        texto = texto.replace("É", "&Eacute;");
+        texto = texto.replace("Í", "&Iacute;");
+        texto = texto.replace("Ó", "&Oacute;");
+        texto = texto.replace("Ú", "&Uacute;");
+        texto = texto.replace("Ä", "&Auml;");
+        texto = texto.replace("Ë", "&Euml;");
+        texto = texto.replace("Ï", "&Iuml;");
+        texto = texto.replace("Ö", "&Ouml;");
+        texto = texto.replace("Ü", "&Uuml;");
+        texto = texto.replace("¡", "&iexcl;");
+        texto = texto.replace("¿", "&iquest;");
+        texto = texto.replace("»", "&raquo;");
+        texto = texto.replace("«", "&laquo;");
+
+        return texto;
     }
 
     /**
-     * Metodo auxiliar que escribe en un fichero
+     * Metodo auxiliar que escribe en un fichero de nombre [nombre] el contenido
+     * [contenido]
      * 
-     * @param contP1 contenido del primer parametro recibido en el post
-     * @param contP2 contenido del segundo parametro recibido en el post
+     * @param nombre : Nombre del fichero
+     * @param contenido : Contenido que debe ser escrito en el fichero
+     * 
      */
-    public static void escribeFichero(String contP1, String contP2) {
+    public static void escribeFichero(String nombre, String contenido) {
 
         // crea un fichero vacio y sin nombre
         File ruta = new File("");
 
         // utiliza el fichero vacio para obtener la ruta completa
-        File fichero = new File(ruta.getAbsolutePath() + "/" + contP1);
+        File fichero = new File(ruta.getAbsolutePath() + "/" + nombre);
 
         PrintWriter escritor;
         try {
             escritor = new PrintWriter(fichero);
 
             // sustituye caracteres especiales, evitando errores con el printf
-            String tmp = contP2.replace("%", "%%");
+            contenido = contenido.replace("%", "%%");
 
             // escribe contenido en el fichero
-            escritor.printf(tmp);
+            escritor.printf(contenido);
             escritor.flush();
             escritor.close();
         } catch (Exception e) {
@@ -234,11 +263,12 @@ public class Utiles {
     }
 
     /**
-     * Metodo que genera el cuerpo de una respuesta en caso de error
+     * Devuelve el cuerpo de una respuesta HTTP en caso de error
      * 
-     * @param codigo Codigo de error asociado a la respuesta
-     * @param texto Texto asociado a la respuesta
+     * @param codigo : Codigo de error asociado a la respuesta
+     * @param texto : Texto asociado a la respuesta
      * @return Cadena de texto correspondiente al cuerpo de una respuesta
+     * 
      */
     public static String generaCuerpo(int codigo, String texto) {
         String cuerpo = "<html><head>\n";
@@ -251,11 +281,12 @@ public class Utiles {
     }
 
     /**
-     * Metodo que genera el cuerpo de una respuesta en caso de exito
+     * Devuelve el cuerpo de una respuesta HTTP en caso de exito
      * 
-     * @param fichero Nombre del fichero generado
-     * @param contenido Contenido del fichero generado
+     * @param fichero : Nombre del fichero generado
+     * @param contenido : Contenido del fichero generado
      * @return Cadena de texto correspondiente al cuerpo de una respuesta
+     * 
      */
     public static String generaCuerpoExito(String fichero, String contenido) {
         String cuerpo = "<html><head><meta charset=\"UTF-8\">\n";
@@ -271,37 +302,61 @@ public class Utiles {
 
         return cuerpo;
     }
-    
-    public static String generaRespuesta(int codigo){
+
+    /**
+     * Devuelve una respuesta HTTP completa a partir del codigo de error
+     * [codigo].
+     * 
+     * @param codigo : Codigo de error HTTP
+     * @return respuesta HTTP completa
+     * 
+     */
+    public static String generaRespuesta(int codigo) {
         return generaRespuesta(codigo, "");
     }
 
-    public static String generaRespuesta(int codigo, File fichero)
-            throws FileNotFoundException {
+    /**
+     * Devuelve una respuesta HTTP completa a partir del codigo HTTP [codigo] y
+     * el contenido del fichero [fichero].
+     * 
+     * @param codigo : Codigo HTTP
+     * @param fichero : Fichero cuyo contenido sera incluido en la respuesta
+     *            HTTP
+     * @return respuesta HTTP completa
+     * 
+     */
+    public static String generaRespuesta(int codigo, File fichero) {
+        try {
+            Scanner lectorFich;
 
-        Scanner lectorFich;
+            lectorFich = new Scanner(fichero);
 
-        lectorFich = new Scanner(fichero);
+            // lee el fichero linea a linea, por lo que se usa el
+            // constructor de cadenas para que el proceso sea mas
+            // eficiente
+            StringBuilder cuerpo = new StringBuilder();
+            while (lectorFich.hasNextLine()) {
+                cuerpo.append(lectorFich.nextLine() + "\n");
+            }
+            lectorFich.close();
 
-        // lee el fichero linea a linea, por lo que se usa el
-        // constructor de cadenas para que el proceso sea mas
-        // eficiente
-        StringBuilder cuerpo = new StringBuilder();
-        while (lectorFich.hasNextLine()) {
-            cuerpo.append(lectorFich.nextLine() + "\n");
+            return generaRespuesta(codigo, cuerpo.toString());
+
+        } catch (Exception e) {
+            System.err.println("ERROR: " + e.getMessage());
+            return null;
         }
-        lectorFich.close();
-
-        return generaRespuesta(codigo, cuerpo.toString());
     }
 
     /**
-     * Metodo que genera un paquete HTTP
+     * Devuelve una respuesta HTTP completa a partir del codigo HTTP [codigo] y
+     * el contenido del fichero [fichero].
      * 
-     * @param codigo Codigo de respuesta HTTP asociado
-     * @param cuerpo Cuerpo de la respuesta
-     * @param len Longitud del cuerpo que se envia por separado
-     * @return paquete HTTP
+     * @param codigo : Codigo HTTP
+     * @param contenido : Cadena cuyo contenido sera incluido en la respuesta
+     *            HTTP
+     * @return respuesta HTTP completa
+     * 
      */
     public static String generaRespuesta(int codigo, String contenido) {
 
@@ -329,6 +384,8 @@ public class Utiles {
                 textoCodigo = "Forbidden";
             } else if (codigo == 404) {
                 textoCodigo = "Not Found";
+            } else if (codigo == 500) {
+                textoCodigo = "Internal Server Error";
             } else if (codigo == 501) {
                 textoCodigo = "Not Implemented";
             }

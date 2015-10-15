@@ -1,3 +1,15 @@
+/*
+ * AUTORES PARCIALES: Juan Vela Garcia / Marta Frias Zapater
+ * NIA: 643821 / 535621
+ * FICHERO: BlockingHTTPParser.java
+ * TIEMPO: 30 minutos
+ * DESCRIPCION: Se ha modificado el comportamiento del metodo 'getBody'
+ * con el objetivo de que sea capaz de gestionar grandes volumenes de datos.
+ * Anteriormente se realizaba una unica lectura, que en los mencionados casos 
+ * de sobrecarga de datos entrantes, no era suficiente para procesar 
+ * toda la entrada.
+ */
+
 package ssdd.p1.herramientas;
 
 import java.io.InputStream;
@@ -6,8 +18,8 @@ import java.nio.ByteBuffer;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
-public class BlockingHTTPParser implements HTTPParser<InputStream>{
-    
+public class BlockingHTTPParser implements HTTPParser<InputStream> {
+
     public void parseRequest(InputStream stream) {
         if (!readMethod(stream) || !readHeaders(stream) || !readBody(stream)) {
             state = BAD_REQUEST;
@@ -79,27 +91,36 @@ public class BlockingHTTPParser implements HTTPParser<InputStream>{
         return line != null;
     }
 
+    /**
+     * Metodo encargado de leer el cuerpo de la peticion. Se ha modificado con
+     * respecto al original para que sea capaz de atender peticiones
+     * extremadamente largas
+     * 
+     */
     private boolean readBody(InputStream stream) {
         if (body != null) {
-            try {                
+            try {
                 int pos = 0;
                 int len = body.array().length;
                 int numLeidos;
                 int numBytesTmp;
-                
-                if (len >= 1024){
+
+                if (len >= 1024) {
                     numBytesTmp = 1024;
                 } else {
                     numBytesTmp = len;
                 }
 
+                // crea bufer intermedio
                 byte[] tmp = new byte[numBytesTmp];
 
+                // rellena el cuerpo en varias iteraciones (si es necesario)
+                // hasta haber leido toda la entrada
                 while (pos < len) {
                     numLeidos = stream.read(tmp, 0, tmp.length);
                     body.put(tmp, 0, numLeidos);
-                    
-                    pos += numLeidos; 
+
+                    pos += numLeidos;
                 }
 
             } catch (IOException e) {
