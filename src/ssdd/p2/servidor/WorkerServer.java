@@ -8,13 +8,15 @@
  */
 
 
-package ssdd.p2;
+package ssdd.p2.servidor;
 
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.LinkedList;
+
+import ssdd.p2.interfase.Worker;
 
 /**
  * Implementacion del metodo remoto encuentraPrimos, que obtiene los

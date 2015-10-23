@@ -7,7 +7,7 @@
  * dameWorkers, que obtiene referencias a servidores de calculo.
  */
 
-package ssdd.p2;
+package ssdd.p2.servidor;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -17,6 +17,9 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import ssdd.p2.interfase.Worker;
+import ssdd.p2.interfase.WorkerFactory;
 
 /**
  * Implementacion del metodo remoto dameWorkers,que obtiene

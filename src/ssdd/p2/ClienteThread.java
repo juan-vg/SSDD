@@ -13,6 +13,8 @@ package ssdd.p2;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 
+import ssdd.p2.interfase.Worker;
+
 /**
  * Gestiona un intervalo de numeros enteros y obtiene los que son
  * primos mediante la invocacion al metodo remoto de un servidor de

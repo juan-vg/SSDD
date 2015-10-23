@@ -8,7 +8,7 @@
  * numeros enteros que son primos en un intervalo dado.
  */
 
-package ssdd.p2;
+package ssdd.p2.interfase;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;

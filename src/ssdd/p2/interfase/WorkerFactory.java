@@ -8,7 +8,7 @@
  * referencias a servidores de calculo.
  */
 
-package ssdd.p2;
+package ssdd.p2.interfase;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;

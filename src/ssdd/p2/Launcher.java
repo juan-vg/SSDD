@@ -21,6 +21,11 @@ import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ssdd.p2.interfase.Worker;
+import ssdd.p2.interfase.WorkerFactory;
+import ssdd.p2.servidor.WorkerFactoryServer;
+import ssdd.p2.servidor.WorkerServer;
+
 /**
  * Permite construir la infraestructura necesaria para que un cliente
  * pueda determinar los numeros primos de un cierto intervalo,

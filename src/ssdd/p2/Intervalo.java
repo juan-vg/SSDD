@@ -23,6 +23,9 @@ public class Intervalo {
 	/** Maximo entero del intervalo*/
 	private int max;
 	
+	
+	private int iterador;
+	
 	/**
      * Metodo constructor
      * 
@@ -32,6 +35,15 @@ public class Intervalo {
     public Intervalo(int m, int M) {
         min = m;
         max = M;
+        iterador = min;
+    }
+    
+    public void iniciarIterador(){
+    	iterador = min;
+    }
+    
+    public void iteradorSiguiente(){
+    	return iterador++;
     }
 	
 	/**
@@ -50,23 +62,5 @@ public class Intervalo {
      */
     public int getMax() {
         return max;
-    }
-	
-	/**
-     * Modifica el minimo del intervalo
-     * 
-     * @param m nuevo minimo del intervalo
-     */
-    public void setMin(int m) {
-        min = m;
-    }
-    
-    /**
-     * Modifica el maximo del intervalo
-     * 
-     * @param M nuevo maximo del intervalo
-     */
-    public void setMax(int M) {
-        max = M;
     }
 }
