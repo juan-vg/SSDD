@@ -140,7 +140,7 @@ public abstract class ServidorHTTP {
 
                             // recodificar el contenido para que se muestre
                             // correctamente en la web
-                            contP2 = Utiles.reEncode(contP2);
+                            contP2 = Utiles.codificarHTML(contP2);
 
                             return Utiles.generaRespuesta(200,
                                     Utiles.generaCuerpoExito(contP1, contP2));

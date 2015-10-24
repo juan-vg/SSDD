@@ -198,7 +198,7 @@ public class Utiles {
      * @return Cadena de texto recodificada en formato html
      * 
      */
-    public static String reEncode(String texto) {
+    public static String codificarHTML(String texto) {
         texto = texto.replace("ñ", "&ntilde;");
         texto = texto.replace("Ñ", "&Ntilde;");
         texto = texto.replace("á", "&aacute;");
