@@ -23,37 +23,15 @@ public class UnionIntervalos extends Intervalo{
 	private Intervalo intervaloB;
 	
 	/**
-     * Metodo constructor
+     * Crea la union de dos intervalos de numeros enteros
      * 
-     * @param m minimo del intervalo
-     * @param M maximo del intervalo
+     * @param a intervalo cuyos valores son menores que los de [b]
+     * @param b intervalo cuyos valores son mayores que los de [a]
      */
     public UnionIntervalos(Intervalo a, Intervalo b) {
     	super(a.getMin(), b.getMax());
     	intervaloA = a;
     	intervaloB = b;
-    }
-    
-	/**
-     * Modifica el minimo del intervalo
-     * 
-     * @param m nuevo minimo del intervalo
-     */
-    @Override
-    public void setMin(int m) {
-    	//TODO: comprobar si es correcto el nuevo min
-        intervaloA.setMin(m);
-    }
-    
-    /**
-     * Modifica el maximo del intervalo
-     * 
-     * @param M nuevo maximo del intervalo
-     */
-    @Override
-    public void setMax(int M) {
-    	//TODO: comprobar si es correcto el nuevo min
-        intervaloB.setMax(M);
     }
 
 	/**
@@ -64,24 +42,43 @@ public class UnionIntervalos extends Intervalo{
 	}
 
 	/**
-	 * @param intervaloA the intervaloA to set
-	 */
-	public void setIntervaloA(Intervalo intervaloA) {
-		this.intervaloA = intervaloA;
-	}
-
-	/**
 	 * @return the intervaloB
 	 */
 	public Intervalo getIntervaloB() {
 		return intervaloB;
 	}
-
-	/**
-	 * @param intervaloB the intervaloB to set
-	 */
-	public void setIntervaloB(Intervalo intervaloB) {
-		this.intervaloB = intervaloB;
-	}
-
+	
+	@Override
+    public int iteradorSiguiente(){
+        
+        if(iteradorHaySiguiente()){
+            
+            int iterador = getIterador();
+            
+            if(iterador == intervaloA.getMax()){
+                setIterador(intervaloB.getMin());
+            } else {
+                super.iteradorSiguiente();
+            }
+            
+            return iterador;
+            
+        } else {
+            return -1;
+        }
+        
+    }
+	
+    @Override
+    public String toString() {
+        String respuesta = "";
+        
+        iteradorIniciar();
+        
+        while (iteradorHaySiguiente()){
+            respuesta += iteradorSiguiente() + ",";
+        }
+        
+        return respuesta;
+    }
 }

@@ -15,7 +15,7 @@ package ssdd.p2;
  * @author Juan Vela y Marta Frias
  * 
  */
-public class Intervalo {
+public class Intervalo{
 
     /** Minimo entero del intervalo*/
 	private int min;
@@ -38,12 +38,38 @@ public class Intervalo {
         iterador = min;
     }
     
-    public void iniciarIterador(){
+    public void iteradorIniciar(){
     	iterador = min;
     }
     
-    public void iteradorSiguiente(){
-    	return iterador++;
+    public boolean iteradorHaySiguiente(){
+        return iterador <= max;
+    }
+    
+    /**
+     * @return the iterador
+     */
+    protected int getIterador() {
+        return iterador;
+    }
+
+    /**
+     * @param iterador the iterador to set
+     */
+    protected void setIterador(int iterador) {
+        this.iterador = iterador;
+    }
+
+    public int iteradorSiguiente(){
+        
+        if(iteradorHaySiguiente()){
+            int respuesta = iterador;
+            iterador = iterador + 1;
+            return respuesta;
+        } else {
+            return -1;
+        }
+    	
     }
 	
 	/**
@@ -62,5 +88,18 @@ public class Intervalo {
      */
     public int getMax() {
         return max;
+    }
+
+    @Override
+    public String toString() {
+        String respuesta = "";
+        
+        iteradorIniciar();
+        
+        while (iteradorHaySiguiente()){
+            respuesta += iteradorSiguiente() + ",";
+        }
+        
+        return respuesta;
     }
 }

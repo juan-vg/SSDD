@@ -42,10 +42,14 @@ public class WorkerServer extends UnicastRemoteObject implements
 		LinkedList<Integer> primos = new LinkedList<Integer>();
 
 		for (int i = min; i <= max; i++) {
+		    
 			// probar si es primo
 			if (i == 2) {
+			    
 				// es primo
 				primos.add(i);
+				
+				
 			} else if (i % 2 != 0 && i != 1) {
 				double raiz = Math.sqrt(i);
 
