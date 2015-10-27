@@ -66,11 +66,11 @@ public class GestorIntervalos {
 		return itInferior >= itSuperior;
 	}
 	
-	private static double dameTiempo(double factorPotencia){
+	private static double dameTiempo(double factorPotencia, int numIters){
 		//Por ejemplo Tmedio de ejec = 5s = 5000ms
 		
 		// a mayor potencia, menos tiempo
-		return 5000 * (1/factorPotencia);
+		return ((double)numIters) * (1/factorPotencia) / 2.0;
 	}
 
 	private static void gestorDinamico1(){
@@ -78,7 +78,7 @@ public class GestorIntervalos {
         GestorIntervalos gi = new GestorIntervalos(a);
         
         int NUM_WORKERS = 5;
-        double[][] workers = new double[NUM_WORKERS][2];
+        double[][] workers = new double[NUM_WORKERS][3];
         for(int i=0; i<NUM_WORKERS; i++){
         	workers[i][0] = 0.3 * ((double)i + 1.0);
         }
@@ -87,6 +87,7 @@ public class GestorIntervalos {
         
 
         int numElems = 10000;
+        int numElemsTMP;
 
         int suma = 0;
         int primerNum = 0;
@@ -108,14 +109,21 @@ public class GestorIntervalos {
             System.out.print("numElements: " + numElems + "->");
 
             // descontar elementos en funcion del incremento medio
-            if (incrMedio != 0.0) {
-                numElems = numElems - (int) (numElems * (incrMedio / 100.0)
-                        * (1.0 + factorDescuento));
+            if(workers[itWorker][2] != 0.0){
+            	double incrTMP = workers[itWorker][2];
+            	if(incrTMP >= 0.5){
+            		incrTMP = 0.5;
+            	} else if(incrTMP <= -0.5){
+            		incrTMP = -0.5;
+            	}
+            	numElemsTMP = numElems - (int)(numElems * incrTMP);
+            } else {
+            	numElemsTMP = numElems;
             }
 
-            System.out.println(numElems);
+            System.out.println(numElemsTMP);
 
-            Intervalo i = gi.getSubIntervalo(numElems);
+            Intervalo i = gi.getSubIntervalo(numElemsTMP);
 
             suma = 0;
 
@@ -128,12 +136,13 @@ public class GestorIntervalos {
                 }
             }
             
-            workers[itWorker][1] = dameTiempo(workers[itWorker][0]);
+            workers[itWorker][1] = dameTiempo(workers[itWorker][0], suma);
             System.out.printf("Worker %d (potencia = %.2f) -> ",itWorker, workers[itWorker][0]);
             System.out.printf("Tiempo de ejecucion = %.2f ms\n",workers[itWorker][1]);
             if(tiempoMedio > 0.0){
             	System.out.printf("Tiempo de ejecucion medio = %.2f ms ",tiempoMedio);
-            	double incrTiempo = (workers[itWorker][1] - tiempoMedio) * 100.0;
+            	double incrTiempo = (workers[itWorker][1] - tiempoMedio)/tiempoMedio * 100.0;
+            	workers[itWorker][2]=incrTiempo / 100.0;
             	System.out.printf("(incremento = %.5f%%)\n",incrTiempo);
             }
             itWorker++;
@@ -145,27 +154,7 @@ public class GestorIntervalos {
             	tiempoMedio /= (double)NUM_WORKERS;
             }
 
-            // obtiene el primer numero de iteraciones, ajustando todos los
-            // siguientes con respecto a el (modificando el incremento medio)
-            if (primerNum == 0) {
-                primerNum = suma;
-                incr = 0.0;
-
-            } else if (primerNum > 0) {
-                
-                incr = (1.0 - (double) primerNum / (double) suma) * 100.0;
-                
-                if (incrMedio == 0.0) {
-                    incrMedio = incr;
-                } else {
-                    incrMedio = (incr + incrMedio) / 2;
-                }
-
-            }
-
-            System.out.printf("Num Iteraciones = %d (incremento = %.5f%%)\n",
-                    suma, incr);
-            System.out.printf("Incremento medio = %.5f\n", incrMedio);
+            
             System.out.println(
                     "-------------------------------------------------------");
         }
