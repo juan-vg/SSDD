@@ -22,9 +22,7 @@ public class Intervalo{
 	
 	/** Maximo entero del intervalo*/
 	private int max;
-	
-	
-	private int iterador;
+
 	
 	/**
      * Metodo constructor
@@ -35,41 +33,6 @@ public class Intervalo{
     public Intervalo(int m, int M) {
         min = m;
         max = M;
-        iterador = min;
-    }
-    
-    public void iteradorIniciar(){
-    	iterador = min;
-    }
-    
-    public boolean iteradorHaySiguiente(){
-        return iterador <= max;
-    }
-    
-    /**
-     * @return the iterador
-     */
-    protected int getIterador() {
-        return iterador;
-    }
-
-    /**
-     * @param iterador the iterador to set
-     */
-    protected void setIterador(int iterador) {
-        this.iterador = iterador;
-    }
-
-    public int iteradorSiguiente(){
-        
-        if(iteradorHaySiguiente()){
-            int respuesta = iterador;
-            iterador = iterador + 1;
-            return respuesta;
-        } else {
-            return -1;
-        }
-    	
     }
 	
 	/**
@@ -88,18 +51,5 @@ public class Intervalo{
      */
     public int getMax() {
         return max;
-    }
-
-    @Override
-    public String toString() {
-        String respuesta = "";
-        
-        iteradorIniciar();
-        
-        while (iteradorHaySiguiente()){
-            respuesta += iteradorSiguiente() + ",";
-        }
-        
-        return respuesta;
     }
 }

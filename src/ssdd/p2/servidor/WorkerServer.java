@@ -36,8 +36,6 @@ public class WorkerServer extends UnicastRemoteObject implements
 	@Override
 	public ArrayList<Integer> encuentraPrimos(int min, int max)
 			throws RemoteException {
-		
-		System.out.printf("Recibe peticion (%d, %d)\n",min, max);
 
 		LinkedList<Integer> primos = new LinkedList<Integer>();
 
@@ -73,8 +71,6 @@ public class WorkerServer extends UnicastRemoteObject implements
         for (Integer p : primos) {
             listaPrimos.add(p);
         }
-		
-		System.out.println("Devuelve " + listaPrimos.size());
 
 		return listaPrimos;
 	}

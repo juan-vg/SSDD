@@ -50,8 +50,6 @@ public class WorkerFactoryServer extends UnicastRemoteObject
 	@Override
     public ArrayList<Worker> dameWorkers(int n)
             throws RemoteException {
-	    
-		System.out.println("Recibe peticion de " + n);
 		
 		ArrayList<Worker> workers;		
 		Registry registry = LocateRegistry.getRegistry(host);
@@ -87,8 +85,6 @@ public class WorkerFactoryServer extends UnicastRemoteObject
 			}
 			i++;
 		}
-		System.out.println("Sirve " + workers.size());
-		System.out.println();
 
 		return workers;
 	}

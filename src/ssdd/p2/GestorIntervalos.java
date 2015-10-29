@@ -17,21 +17,11 @@ package ssdd.p2;
  */
 public class GestorIntervalos {
 
-    public static void main(String[] args) {
-        gestorDinamico1();
-        System.out.println();
-
-        // gestorDinamico2();
-    }
-
     /** Intervalo inicial, introducido por el usuario */
     private Intervalo intervalo;
 
-    /** Numero de elementos de los subintervalos devueltos */
-    // private int numElementos;
-
+    /** Iteradores del intervalo */
     private int itSuperior;
-
     private int itInferior;
 
     /**
@@ -64,303 +54,6 @@ public class GestorIntervalos {
         return itInferior >= itSuperior;
     }
 
-    private static double dameTiempo(double factorPotencia, int numIters) {
-        
-        double resp = ((double) numIters) * (1 / factorPotencia) / 1000.0;
-        
-        if(Math.random() >= 0.9){
-            resp += 5000;
-            System.out.println("***********************************************");
-            System.out.println("RETARDO EN LA RED");
-            System.out.println("***********************************************");
-            
-        }
-
-        // a mayor potencia, menos tiempo
-        return resp;
-    }
-
-    private static void gestorDinamico1() {
-        Intervalo a = new Intervalo(1000, 1000000);
-        GestorIntervalos gi = new GestorIntervalos(a);
-
-        int NUM_WORKERS = 5;
-        int numElems = 10000;
-        int numElemsTMP;
-
-        /**
-         * [0] -> potencia 
-         * [1] -> ultimo tiempo de ejecucion 
-         * [2] -> grado de desviacion con respecto al ultimo tiempo medio 
-         * [3] -> ultimo numero de elementos 
-         * [4] -> penultimo numero de iteraciones 
-         * [5] -> ultimo numero de iteraciones 
-         * [6] -> factor de descuento (a partir del incremento en el numero de iteraciones)
-         */
-        double[][] workers = new double[NUM_WORKERS][7];
-
-        for (int i = 0; i < NUM_WORKERS; i++) {
-            workers[i][0] = 0.3 * ((double) i + 1.0);
-            workers[i][3] = numElems;
-            workers[i][4] = 0.0;
-            workers[i][5] = 0.0;
-
-        }
-        double tiempoMedio = 0.0;
-        int itWorker = 0;
-
-        int suma = 0;
-
-        boolean factorDescuentoEstable = false;
-        int calculosFactor = 0;
-        double factorDescuento = 0.0;
-
-        // mientras quede intervalo
-        while (!gi.haAcabado()) {
-
-            System.out.print("numElements: " + (int)workers[itWorker][3] + "->");
-
-            factorDescuento = 0.0;
-
-            // numElems = numElems / grado de desviacion
-            if (workers[itWorker][2] != 0.0) {
-
-                if (workers[itWorker][4] != 0.0 && workers[itWorker][5] != 0.0) {
-
-                    factorDescuento = (workers[itWorker][5] - workers[itWorker][4]) / workers[itWorker][4];
-                    factorDescuento = factorDescuento * 0.6;
-                }
-                
-                numElemsTMP = (int)workers[itWorker][3];
-                
-                if (factorDescuento != 0.0){
-                    numElemsTMP = numElemsTMP - (int)(numElemsTMP * factorDescuento);
-                    System.out.print(numElemsTMP+"->");
-                }
-                
-                
-                
-                numElemsTMP = (int) (numElemsTMP / workers[itWorker][2]);
-                
-            } else {
-                numElemsTMP = (int) workers[itWorker][3];
-            }
-
-            System.out.println(numElemsTMP);
-            System.out.printf("Factor de descuento = %.5f\n", factorDescuento);
-            
-            
-            
-
-            workers[itWorker][3] = numElemsTMP;
-
-            Intervalo i = gi.getSubIntervalo(numElemsTMP);
-
-            suma = 0;
-
-            // calcular numero de iteraciones del subintervalo
-            while (i.iteradorHaySiguiente()) {
-                int it = i.iteradorSiguiente();
-
-                if (it % 2 != 0 && it != 1) {
-                    suma += Math.sqrt(it);
-                }
-            }
-
-            workers[itWorker][1] = dameTiempo(workers[itWorker][0], suma);
-
-            if (workers[itWorker][4] == 0.0 && workers[itWorker][5] == 0.0) {
-                workers[itWorker][5] = suma / numElemsTMP;
-            } else {
-                workers[itWorker][4] = workers[itWorker][5];
-                workers[itWorker][5] = suma / numElemsTMP;
-            }
-
-            System.out.printf("Worker %d (potencia = %.2f) -> ", itWorker,
-                    workers[itWorker][0]);
-            System.out.printf("Tiempo de ejecucion = %.2f ms\n",
-                    workers[itWorker][1]);
-
-            if (tiempoMedio > 0.0) {
-
-                double incrTiempo = (workers[itWorker][1] - tiempoMedio)
-                        / tiempoMedio;
-
-                System.out.printf("(incremento = %.5f%%)\n",
-                        incrTiempo * 100.0);
-            }
-
-            itWorker++;
-
-            System.out.println(
-                    "-------------------------------------------------------");
-
-            if (itWorker >= NUM_WORKERS) {
-                itWorker = 0;
-
-                tiempoMedio = 0.0;
-
-                for (int j = 0; j < NUM_WORKERS; j++) {
-                    tiempoMedio += workers[j][1];
-                }
-
-                tiempoMedio /= (double) NUM_WORKERS;
-
-                for (int j = 0; j < NUM_WORKERS; j++) {
-                    workers[j][2] = workers[j][1] / tiempoMedio;
-                }
-
-                if(factorDescuento != 0){
-                    calculosFactor++;
-
-                    if (calculosFactor == 3){
-                        factorDescuentoEstable = true;
-                    }
-                }
-
-                System.out.println(
-                        "=======================================================");
-                System.out.printf("Tiempo de ejecucion medio = %.5f ms \n",
-                        tiempoMedio);
-                System.out.println(
-                        "=======================================================");
-            }
-
-        }
-    }
-
-    /*
-     * private static void gestorDinamico1(){ Intervalo a = new Intervalo(1000,
-     * 1000000); GestorIntervalos gi = new GestorIntervalos(a);
-     * 
-     * 
-     * 
-     * int numElems = 10000;
-     * 
-     * int suma = 0; int primerNum = 0;
-     * 
-     * double incr = 0.0; double incrMedio = 0.0;
-     * 
-     * /** A medida que se avanza en los subintervalos, el numero de iteraciones
-     * crece. Para solucionarlo se incrementa el numero de elementos
-     * descartados. Cuanto mas mayor, mas agresivo y mas bandazos da (al
-     * intentar recuperarse mas rapido puede cometer mas error)
-     */
-    /*
-     * double factorDescuento = 0.5;
-     * 
-     * // mientras quede intervalo while (!gi.haAcabado()) {
-     * 
-     * System.out.print("numElements: " + numElems + "->");
-     * 
-     * // descontar elementos en funcion del incremento medio if (incrMedio !=
-     * 0.0) { numElems = numElems - (int) (numElems * (incrMedio / 100.0) (1.0 +
-     * factorDescuento)); }
-     * 
-     * System.out.println(numElems);
-     * 
-     * Intervalo i = gi.getSubIntervalo(numElems);
-     * 
-     * suma = 0;
-     * 
-     * // calcular numero de iteraciones del subintervalo while
-     * (i.iteradorHaySiguiente()) { int it = i.iteradorSiguiente();
-     * 
-     * if (it % 2 != 0 && it != 1) { suma += Math.sqrt(it); } }
-     * 
-     * // obtiene el primer numero de iteraciones, ajustando todos los //
-     * siguientes con respecto a el (modificando el incremento medio) if
-     * (primerNum == 0) { primerNum = suma; incr = 0.0;
-     * 
-     * } else if (primerNum > 0) {
-     * 
-     * incr = (1.0 - (double) primerNum / (double) suma) * 100.0;
-     * 
-     * if (incrMedio == 0.0) { incrMedio = incr; } else { incrMedio = (incr +
-     * incrMedio) / 2; }
-     * 
-     * }
-     * 
-     * System.out.printf("Num Iteraciones = %d (incremento = %.5f%%)\n", suma,
-     * incr); System.out.printf("Incremento medio = %.5f\n", incrMedio);
-     * System.out.println(
-     * "-------------------------------------------------------"); } }
-     */
-
-    private static void gestorDinamico2() {
-        Intervalo a = new Intervalo(1000, 1000000);
-        GestorIntervalos gi = new GestorIntervalos(a);
-
-        int numElems = 10000;
-
-        int suma = 0;
-        int primerNum = 0;
-
-        double incr = 0.0;
-        double incrMedio = 0.0;
-
-        /**
-         * A medida que se avanza en los subintervalos, el numero de iteraciones
-         * crece. Para solucionarlo se incrementa el numero de elementos
-         * descartados. Cuanto mas mayor, mas agresivo y mas bandazos da (al
-         * intentar recuperarse mas rapido puede cometer mas error)
-         */
-        double factorDescuento = 0.7;
-
-        // mientras quede intervalo
-        while (!gi.haAcabado()) {
-
-            System.out.print("numElements: " + numElems + "->");
-
-            // descontar elementos en funcion del incremento medio
-            if (incrMedio != 0.0) {
-                numElems = numElems - (int) (numElems * (incrMedio / 100.0)
-                        * (1.0 + factorDescuento));
-            }
-
-            System.out.println(numElems);
-
-            Intervalo i = gi.getSubIntervalo(numElems);
-
-            suma = 0;
-
-            // calcular numero de iteraciones del subintervalo
-            while (i.iteradorHaySiguiente()) {
-                int it = i.iteradorSiguiente();
-
-                if (it % 2 != 0 && it != 1) {
-                    suma += Math.sqrt(it);
-                }
-            }
-
-            // obtiene el primer numero de iteraciones, ajustando todos los
-            // siguientes con respecto a el (modificando el incremento medio)
-            if (primerNum == 0) {
-                primerNum = suma;
-                incr = 0.0;
-
-            } else if (primerNum > 0) {
-
-                // incr = (1.0 - (double) primerNum / (double) suma) * 100.0;
-                incr = (((double) (suma - primerNum)) / (double) primerNum)
-                        * 100.0;
-
-                if (incrMedio == 0.0) {
-                    incrMedio = incr;
-                } else {
-                    incrMedio = (incr + incrMedio) / 2;
-                }
-
-            }
-
-            System.out.printf("Num Iteraciones = %d (incremento = %.5f%%)\n",
-                    suma, incr);
-            System.out.printf("Incremento medio = %.5f\n", incrMedio);
-            System.out.println(
-                    "-------------------------------------------------------");
-        }
-    }
-
     /**
      * Devuelve un subintervalo con el numero de elementos especificado en el
      * gestor de intervalos. Si el numero de elementos especificado es impar se
@@ -370,19 +63,23 @@ public class GestorIntervalos {
      * 
      * @return subintervalo de numeros enteros
      */
-    public Intervalo getSubIntervalo(int numElementos) {
+    public UnionIntervalos getSubIntervalo(int numElementos) {
 
         if (!haAcabado()) {
 
             int mitadNumElem = numElementos / 2;
 
-            Intervalo subIntervalo = null;
+            UnionIntervalos subIntervalo = null;
 
             // si no quedan suficientes elementos
             // -> devuelve lo que quede
             if ((itInferior + mitadNumElem) >= (itSuperior - mitadNumElem)) {
+                
+                Intervalo inferior = new Intervalo(itInferior, itSuperior);
 
-                subIntervalo = new Intervalo(itInferior, itSuperior);
+                Intervalo superior = null;
+
+                subIntervalo = new UnionIntervalos(inferior, superior);
 
             }
 
