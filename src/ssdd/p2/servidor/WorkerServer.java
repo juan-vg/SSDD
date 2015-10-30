@@ -25,6 +25,7 @@ import ssdd.p2.interfase.Worker;
  * @author Juan Vela y Marta Frias
  * 
  */
+@SuppressWarnings("serial")
 public class WorkerServer extends UnicastRemoteObject implements
         Worker {
 

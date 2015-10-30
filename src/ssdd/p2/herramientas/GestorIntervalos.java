@@ -2,7 +2,7 @@
  * AUTORES: Juan Vela Garcia / Marta Frias Zapater
  * NIA: 643821 / 535621
  * FICHERO: GestorIntervalos.java
- * TIEMPO: 1 hora
+ * TIEMPO: 2 horas
  * DESCRIPCION: gestiona un intervalo de numeros enteros, permitiendo
  *  dividirlo en subintervalos 
  */
@@ -65,8 +65,11 @@ public class GestorIntervalos {
      */
     public UnionIntervalos getSubIntervalo(int numElementos) {
 
+        // mientras queden elementos por asignar
         if (!haAcabado()) {
 
+            // obtener la mitad del numero de elementos para repartir los dos
+            // intervalos de forma homogenea
             int mitadNumElem = numElementos / 2;
 
             UnionIntervalos subIntervalo = null;
@@ -74,7 +77,7 @@ public class GestorIntervalos {
             // si no quedan suficientes elementos
             // -> devuelve lo que quede
             if ((itInferior + mitadNumElem) >= (itSuperior - mitadNumElem)) {
-                
+
                 Intervalo inferior = new Intervalo(itInferior, itSuperior);
 
                 Intervalo superior = null;

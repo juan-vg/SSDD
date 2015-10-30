@@ -2,7 +2,7 @@
  * AUTORES: Juan Vela Garcia / Marta Frias Zapater
  * NIA: 643821 / 535621
  * FICHERO: ClienteThread.java
- * TIEMPO: 2 horas
+ * TIEMPO: 5 horas
  * DESCRIPCION: cada ClienteThread gestiona un intervalo de numeros
  * enteros y obtiene los que son primos mediante la invocacion al 
  * metodo remoto de un servidor de calculo.
@@ -39,20 +39,19 @@ public class ClienteThread implements Runnable {
     /** Atributo que indica si ha terminado su trabajo */
     private boolean acabado;
 
-    /**
-     * Atributo que indica si ha fallado y no ha hecho su trabajo
-     */
+    /** Atributo que indica si ha fallado y no ha hecho su trabajo */
     private boolean fallido;
 
+	/** Lista de numeros primos del intervalo */
     private Resultado resultado;
 
+	/** Numero de elementos del intervalo*/
     private int numElems;
 
     /**
      * Metodo constructor
      * 
      * @param w servidor de calculo
-     * @param i union de dos intervalos
      */
     public ClienteThread(Worker w) {
         worker = w;
@@ -65,14 +64,14 @@ public class ClienteThread implements Runnable {
     }
 
     /**
-     * @return the numElems
+     * @return devuelve el numero de elementos
      */
     public int getNumElems() {
         return numElems;
     }
 
     /**
-     * @param numElems the numElems to set
+     * @param numero de elementos a establecer en el intervalo
      */
     public void setNumElems(int numElems) {
         this.numElems = numElems;
@@ -153,6 +152,9 @@ public class ClienteThread implements Runnable {
         return atendido;
     }
 
+    /**
+     * Ejecuta concurrentemente la llamada al metodo remoto
+     */
     @Override
     public void run() {
         try {

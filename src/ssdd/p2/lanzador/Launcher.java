@@ -15,12 +15,10 @@ import java.rmi.AlreadyBoundException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import ssdd.p2.cliente.ClienteThread;
 import ssdd.p2.herramientas.GestorIntervalos;
 import ssdd.p2.herramientas.Intervalo;
@@ -37,9 +35,10 @@ import ssdd.p2.servidor.WorkerServer;
  * subintervalos y preguntando de manera concurrente a tantos servidores de
  * calculo como indique.
  * 
- * La sintaxis es la siguiente: -c [ipRegistroRMI] //servidor de calculo -a
- * [ipRegistroRMI] //servidor de asignacion -u min max numServidores
- * [ipRegistroRMI] //cliente
+ * La sintaxis es la siguiente: 
+ *  -c [ipRegistroRMI] //servidor de calculo 
+ *  -a [ipRegistroRMI] //servidor de asignacion
+ *  -u min max numServidores [ipRegistroRMI] //cliente
  * 
  * Cada servidor de calculo obtiene los primos en un intervalo dado. El servidor
  * de asignacion encuentra (busca en el registro RMI) tantos servidores de
@@ -52,10 +51,13 @@ import ssdd.p2.servidor.WorkerServer;
  */
 public class Launcher {
 
-    private static final int NUM_ELEMS_INTERVALO = 100000;
+    /** Numero de elementos en intervalo */
+    private static final int NUM_ELEMS_INTERVALO = 1000;
 
+    /** Numero de servidores de calculo procesando un intervalo */
     private static int pendientesPorLeer = 0;
 
+    /** Tiempo de ejecucion medio de los servidores de calculo */
     private static double tiempoMedio = 0.0;
 
     /**
@@ -73,16 +75,30 @@ public class Launcher {
         return sintaxis;
     }
 
+    /**
+     * Realiza el reparto inicial de intervalos entre los workers. Devuelve el
+     * numero de workers activos (a los que se les ha enviado trabajo)
+     * 
+     * @param workers - lista de servidores de calculo
+     * @param cliente - lista de subprocesos encargados de atender a cada uno de
+     *            los servidores de calculo
+     * @param intervalo - gestor de intervalos
+     */
     private static int repartoInicial(ArrayList<Worker> workers,
             ClienteThread[] cliente, GestorIntervalos intervalo) {
 
         int i = 0;
+        
+        // para cada uno de los servidores de calculo obtenidos
         for (Worker w : workers) {
 
+            // crea un subproceso del cliente (concurrente) para atenderlo
             cliente[i] = new ClienteThread(w);
 
             cliente[i].setNumElems(NUM_ELEMS_INTERVALO);
 
+            // si quedan subintervalos por asignar
+            // -> enviar trabajo al servidor
             if (!intervalo.haAcabado()) {
 
                 UnionIntervalos subIntervalo = intervalo
@@ -103,6 +119,20 @@ public class Launcher {
         return i;
     }
 
+    /**
+     * Almacena los resultados de un servidor de calculo y si quedan
+     * subintervalos sin procesar, se le asigna uno de ellos al mencionado
+     * servidor.
+     *
+     * @param i - identificador del servidor de calculo
+     * @param cliente - lista de subprocesos encargados de atender a cada uno de
+     *            los servidores de calculo
+     * @param tiempoWorker - ultimo tiempo del worker
+     * @param tiempoTotalWorkers - cuenta total del tiempo del worker
+     * @param listaPrimos - lista de primos
+     * @param intervalo - gestor de intervalos
+     * @param pendientes - lista de intervalos sin procesar (worker fallido)
+     */
     private static void repartoDinamico(int i, ClienteThread[] cliente,
             double[] tiempoWorker, double[] tiempoTotalWorkers,
             LinkedList<Integer> listaPrimos, GestorIntervalos intervalo,
@@ -164,9 +194,20 @@ public class Launcher {
             t.start();
         }
     }
-    
-    private static void calcularTiempoMedio(int numWorkers, ClienteThread[] cliente, double[] tiempoWorker){
-     // comprobar tiempos en busca de poder calcular una media
+
+    /**
+     * Calcula el tiempo medio utilizado por los servidores de calculo y el
+     * numero de elementos a asignar a cada uno.
+     *
+     * @param numWorkers - numero de servidores de calculo disponible
+     * @param cliente -lista de subprocesos encargados de atender a cada uno de
+     *            los servidores de calculo
+     * @param tiempoWorker - ultimo tiempo del worker
+     */
+    private static void calcularTiempoMedio(int numWorkers,
+            ClienteThread[] cliente, double[] tiempoWorker) {
+
+        // comprobar tiempos en busca de poder calcular una media
         int cuenta = 0;
 
         // comprueba si se han recibido todos los tiempos
@@ -194,11 +235,6 @@ public class Launcher {
                 numElems = (int) (numElems / factor);
                 cliente[j].setNumElems(numElems);
             }
-
-            // reiniciar tiempos
-            for (int j = 0; j < numWorkers; j++) {
-                tiempoWorker[j] = 0.0;
-            }
         }
     }
 
@@ -219,8 +255,6 @@ public class Launcher {
                 new Intervalo(min, max));
         LinkedList<Integer> listaPrimos = new LinkedList<Integer>();
 
-        double tiempoMedio = 0.0;
-
         long tIni = System.nanoTime();
 
         try {
@@ -239,6 +273,7 @@ public class Launcher {
             numWorkers = workers.size();
             ClienteThread[] cliente = new ClienteThread[numWorkers];
 
+            // prepara gestion de fallos
             LinkedList<UnionIntervalos> pendientes = new LinkedList<UnionIntervalos>();
             LinkedList<Worker> workersFallidos = new LinkedList<Worker>();
 
@@ -250,18 +285,22 @@ public class Launcher {
             // (puede ocurrir que haya workers sin trabajo asignado)
             numWorkers = pendientesPorLeer;
 
+            // prepara gestion de tiempos de ejecucion
             double[] tiempoWorker = new double[numWorkers];
             double[] tiempoTotalWorkers = new double[numWorkers];
 
             int i = 0;
             boolean fin = false, error = false;
 
+            // mientras quede algo por hacer (queden servidores y subintervalos) 
             while (!fin) {
 
                 // si alguno ha acabado y no ha sido atendido
                 // --> atender y mandar mas trabajo (si queda)
                 if (cliente[i].isAcabado() && !cliente[i].isAtendido()) {
 
+                    // reparte cantidad trabajo en funcion de la respuesta
+                    // ante el ultimo envio
                     repartoDinamico(i, cliente, tiempoWorker,
                             tiempoTotalWorkers, listaPrimos, intervalo,
                             pendientes);
@@ -277,7 +316,7 @@ public class Launcher {
                     pendientes.addLast(cliente[i].getIntervalo());
                     workersFallidos.add(cliente[i].getWorker());
                 }
-                
+
                 // si todavia no se ha calculado el tiempo medio
                 // -> intentar calcularlo
                 if (tiempoMedio == 0.0) {
@@ -311,6 +350,7 @@ public class Launcher {
 
                 long tTotal = System.nanoTime() - tIni;
 
+                // imprime tiempos de ejecucion
                 System.out.printf("Tiempo total de ejecucion = %.5f ms\n",
                         tTotal / 1000000.0);
 
@@ -321,6 +361,7 @@ public class Launcher {
                                 + " en el intervalo (%d, %d).\n",
                         listaPrimos.size(), min, max);
 
+                // imprime lista de primos por pantalla
                 for (Integer p : listaPrimos) {
                     System.out.println(p);
                 }

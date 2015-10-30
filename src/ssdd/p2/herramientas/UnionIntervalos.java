@@ -47,11 +47,6 @@ public class UnionIntervalos {
         return intervaloB;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
         if(intervaloA != null && intervaloB != null){

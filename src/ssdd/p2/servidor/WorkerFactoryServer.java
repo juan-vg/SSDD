@@ -28,6 +28,7 @@ import ssdd.p2.interfase.WorkerFactory;
  * @author Juan Vela y Marta Frias
  * 
  */
+@SuppressWarnings("serial")
 public class WorkerFactoryServer extends UnicastRemoteObject
         implements WorkerFactory {
 
