@@ -8,11 +8,14 @@
  * metodo remoto de un servidor de calculo.
  */
 
-package ssdd.p2;
+package ssdd.p2.cliente;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 
+import ssdd.p2.herramientas.Intervalo;
+import ssdd.p2.herramientas.Resultado;
+import ssdd.p2.herramientas.UnionIntervalos;
 import ssdd.p2.interfase.Worker;
 
 /**

@@ -7,7 +7,7 @@
  * minimo y un maximo
  */
 
-package ssdd.p2;
+package ssdd.p2.herramientas;
 
 /**
  * Define un intervalo de numeros enteros.

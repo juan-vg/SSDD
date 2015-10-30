@@ -7,7 +7,7 @@
  *  dividirlo en subintervalos 
  */
 
-package ssdd.p2;
+package ssdd.p2.herramientas;
 
 /**
  * Gestiona un intervalo de numeros enteros, permitiendo obtener subintervalos

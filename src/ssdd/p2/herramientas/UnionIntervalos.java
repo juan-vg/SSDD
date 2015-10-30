@@ -6,7 +6,7 @@
  * DESCRIPCION: define la union de dos Intervalos
  */
 
-package ssdd.p2;
+package ssdd.p2.herramientas;
 
 /**
  * Define la union de dos intervalos de numeros enteros.
