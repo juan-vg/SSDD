@@ -15,14 +15,13 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 public interface Worker extends Remote {
-	/**
+    /**
      * Devuelve un vector con los primos entre min y max (min<max)
      * 
-     * @param min  minimo entero del intervalo
+     * @param min minimo entero del intervalo
      * @param max maximo entero del intervalo
      * @return vector con los numeros primos entre min y max
      * @throws RemoteException
      */
-	ArrayList<Integer> encuentraPrimos(int min, int max)
-			throws RemoteException;
+    ArrayList<Integer> encuentraPrimos(int min, int max) throws RemoteException;
 }

@@ -49,14 +49,15 @@ public class UnionIntervalos {
 
     @Override
     public String toString() {
-        if(intervaloA != null && intervaloB != null){
+        if (intervaloA != null && intervaloB != null) {
             return String.format("([%d, %d], [%d, %d])", intervaloA.getMin(),
-                    intervaloA.getMax(), intervaloB.getMin(), intervaloB.getMax());
+                    intervaloA.getMax(), intervaloB.getMin(),
+                    intervaloB.getMax());
         } else {
             return String.format("([%d, %d], [null])", intervaloA.getMin(),
                     intervaloA.getMax());
         }
-        
+
     }
 
 }

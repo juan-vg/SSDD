@@ -42,10 +42,10 @@ public class ClienteThread implements Runnable {
     /** Atributo que indica si ha fallado y no ha hecho su trabajo */
     private boolean fallido;
 
-	/** Lista de numeros primos del intervalo */
+    /** Lista de numeros primos del intervalo */
     private Resultado resultado;
 
-	/** Numero de elementos del intervalo*/
+    /** Numero de elementos del intervalo */
     private int numElems;
 
     /**

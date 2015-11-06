@@ -12,6 +12,7 @@
 package ssdd.p2.lanzador;
 
 import java.rmi.AlreadyBoundException;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
@@ -21,9 +22,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import ssdd.p2.cliente.ClienteThread;
 import ssdd.p2.herramientas.GestorIntervalos;
+import ssdd.p2.herramientas.GestorIp;
 import ssdd.p2.herramientas.Intervalo;
+import ssdd.p2.herramientas.Registrador;
 import ssdd.p2.herramientas.Resultado;
 import ssdd.p2.herramientas.UnionIntervalos;
+import ssdd.p2.interfase.Register;
 import ssdd.p2.interfase.Worker;
 import ssdd.p2.interfase.WorkerFactory;
 import ssdd.p2.servidor.WorkerFactoryServer;
@@ -35,10 +39,10 @@ import ssdd.p2.servidor.WorkerServer;
  * subintervalos y preguntando de manera concurrente a tantos servidores de
  * calculo como indique.
  * 
- * La sintaxis es la siguiente: 
- *  -c [ipRegistroRMI] //servidor de calculo 
- *  -a [ipRegistroRMI] //servidor de asignacion
- *  -u min max numServidores [ipRegistroRMI] //cliente
+ * La sintaxis es la siguiente:
+ * 
+ * -c [ipRegistroRMI] //servidor de calculo -a [ipRegistroRMI] //servidor de
+ * asignacion -u min max numServidores [ipRegistroRMI] //cliente
  * 
  * Cada servidor de calculo obtiene los primos en un intervalo dado. El servidor
  * de asignacion encuentra (busca en el registro RMI) tantos servidores de
@@ -88,7 +92,7 @@ public class Launcher {
             ClienteThread[] cliente, GestorIntervalos intervalo) {
 
         int i = 0;
-        
+
         // para cada uno de los servidores de calculo obtenidos
         for (Worker w : workers) {
 
@@ -292,7 +296,7 @@ public class Launcher {
             int i = 0;
             boolean fin = false, error = false;
 
-            // mientras quede algo por hacer (queden servidores y subintervalos) 
+            // mientras quede algo por hacer (queden servidores y subintervalos)
             while (!fin) {
 
                 // si alguno ha acabado y no ha sido atendido
@@ -387,12 +391,38 @@ public class Launcher {
      */
     private static void crearServidorAsignacion(String ipRegistro) {
 
-        try {
-            WorkerFactoryServer wfs = new WorkerFactoryServer(ipRegistro);
+        GestorIp gestorIp = new GestorIp();
+        String ipLocal = gestorIp.getIpObtenida();
 
-            Registry registry = LocateRegistry.getRegistry(ipRegistro);
-            String nombre = "WorkerFactoryServer";
-            registry.rebind(nombre, wfs);
+        System.getProperties().setProperty("java.rmi.server.hostname", ipLocal);
+
+        final String nombre = "WorkerFactoryServer";
+
+        try {
+
+            final Registry registroRMI = LocateRegistry.getRegistry(ipRegistro);
+            final WorkerFactoryServer wfs = new WorkerFactoryServer(ipRegistro);
+
+            // registro remoto, usar registrador
+            if (ipRegistro != null) {
+                
+                if (ipLocal != null) {
+                    final Register registrador = (Register) registroRMI
+                        .lookup(Registrador.RMI_NAME);
+
+                registrador.registrarServidorAsignacion(wfs, nombre);
+                
+                } else {
+                    System.err.println(
+                            "ERROR: No se ha podido obtener una direccion IP valida");
+                }
+            }
+
+            // registro local
+            else {
+
+                registroRMI.rebind(nombre, wfs);
+            }
 
             System.out.printf(
                     "Servidor de asignacion (%s)" + " registrado con exito.\n",
@@ -402,6 +432,7 @@ public class Launcher {
             System.err.println("ERROR: " + e.toString());
             e.printStackTrace();
         }
+
     }
 
     /**
@@ -411,44 +442,77 @@ public class Launcher {
      * @param ipRegistro direccion ip donde se encuentra el servidor de registro
      */
     private static void crearServidorCalculo(String ipRegistro) {
-        try {
 
+        GestorIp gestorIp = new GestorIp();
+        String ipLocal = gestorIp.getIpObtenida();
+
+        System.getProperties().setProperty("java.rmi.server.hostname", ipLocal);
+
+        String nombre = "Worker";
+
+        try {
+            Registry registroRMI = LocateRegistry.getRegistry(ipRegistro);
             WorkerServer workerServer = new WorkerServer();
 
-            Registry registry = LocateRegistry.getRegistry(ipRegistro);
-            String nombre = "Worker";
-            boolean registrado = false;
-            String[] nombresRegistrados = registry.list();
+            // registro remoto, usar registrador
+            if (ipRegistro != null) {
 
-            int cuenta = 0;
+                if (ipLocal != null) {
+                    final Register registrador = (Register) registroRMI
+                            .lookup(Registrador.RMI_NAME);
 
-            final Pattern workerPatt = Pattern.compile("Worker\\d+");
-
-            // cuenta workers registrados
-            for (int i = 0; i < nombresRegistrados.length; i++) {
-                Matcher esWorker = workerPatt.matcher(nombresRegistrados[i]);
-                if (esWorker.matches()) {
-                    cuenta++;
-                }
-            }
-
-            // elige siguiente numero para el nuevo worker
-            cuenta++;
-
-            // mientras no se haya registrado
-            while (!registrado) {
-
-                try {
-                    String nombreTmp = nombre + (cuenta);
-                    registry.bind(nombreTmp, workerServer);
-                    registrado = true;
+                    String nombreTmp = "";
+                    nombreTmp = registrador
+                            .registrarServidorCalculo(workerServer, nombre);
 
                     System.out.printf("Servidor de calculo (%s)"
                             + " registrado con exito.\n", nombreTmp);
-
-                } catch (AlreadyBoundException e) {
-                    cuenta++;
+                } else {
+                    System.err.println(
+                            "ERROR: No se ha podido obtener una direccion IP valida");
                 }
+            }
+
+            // registro local
+            else {
+
+                boolean registrado = false;
+                String[] nombresRegistrados = registroRMI.list();
+
+                int cuenta = 0;
+
+                final Pattern workerPatt = Pattern.compile("Worker\\d+");
+
+                // cuenta workers registrados
+                for (int i = 0; i < nombresRegistrados.length; i++) {
+                    Matcher esWorker = workerPatt
+                            .matcher(nombresRegistrados[i]);
+                    if (esWorker.matches()) {
+                        cuenta++;
+                    }
+                }
+
+                // elige siguiente numero para el nuevo worker
+                cuenta++;
+
+                // mientras no se haya registrado
+                while (!registrado) {
+
+                    try {
+                        String nombreTmp = nombre + (cuenta);
+                        registroRMI.bind(nombreTmp, workerServer);
+                        registrado = true;
+
+                        System.out.printf(
+                                "Servidor de calculo (%s)"
+                                        + " registrado con exito.\n",
+                                nombreTmp);
+
+                    } catch (AlreadyBoundException e) {
+                        cuenta++;
+                    }
+                }
+
             }
 
         } catch (Exception e) {
@@ -456,6 +520,39 @@ public class Launcher {
         }
     }
 
+    /**
+     * Crea y registra un registrador de otros servidores (cuya ubicacion es
+     * distinta a la del registro). El registrador debe compartir ubicacion con
+     * el registro.
+     */
+    private static void crearRegistrador() {
+        Registry registroRmi;
+
+        try {
+            registroRmi = LocateRegistry.getRegistry(null);
+            Registrador registrador = new Registrador(registroRmi);
+            registroRmi.rebind(Registrador.RMI_NAME, registrador);
+
+            Launcher lanzador = new Launcher();
+            synchronized (lanzador) {
+                try {
+                    lanzador.wait();
+                } catch (InterruptedException e) {
+                    // Terminar
+                }
+            }
+        } catch (RemoteException e) {
+            System.err.println("ERROR: " + e.toString());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Inicia y gestiona todo el sistema distribuido de calculo de numero
+     * primos. Reconoce los parametros introducidos y actua en consecuencia. En
+     * caso de error informa de ello por pantalla
+     * 
+     */
     public static void main(String[] args) {
 
         if (args.length > 0) {
@@ -521,6 +618,21 @@ public class Launcher {
                         System.err.println("ERROR: sintaxis incorrecta.");
                         System.err.printf(sintaxisParams());
                     }
+                } else {
+                    System.err
+                            .println("ERROR: Numero de parametros incorrecto.");
+                    System.err.printf(sintaxisParams());
+                }
+
+            }
+
+            // REGISTRADOR
+            else if (opcion.equals("-r")) {
+
+                if (args.length == 1) {
+
+                    crearRegistrador();
+
                 } else {
                     System.err
                             .println("ERROR: Numero de parametros incorrecto.");

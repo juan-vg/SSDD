@@ -15,10 +15,9 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 public interface WorkerFactory extends Remote {
-    
+
     /**
-     * Devuelve un vector de hasta n referencias a servidores de 
-     * calculo
+     * Devuelve un vector de hasta n referencias a servidores de calculo
      *
      * @param n numero de servidores de calculo
      * @return vector de hasta [n] referencias a servidores de calculo

@@ -15,16 +15,15 @@ package ssdd.p2.herramientas;
  * @author Juan Vela y Marta Frias
  * 
  */
-public class Intervalo{
+public class Intervalo {
 
-    /** Minimo entero del intervalo*/
-	private int min;
-	
-	/** Maximo entero del intervalo*/
-	private int max;
+    /** Minimo entero del intervalo */
+    private int min;
 
-	
-	/**
+    /** Maximo entero del intervalo */
+    private int max;
+
+    /**
      * Metodo constructor
      * 
      * @param m minimo del intervalo
@@ -34,8 +33,8 @@ public class Intervalo{
         min = m;
         max = M;
     }
-	
-	/**
+
+    /**
      * Obtiene el minimo del intervalo
      * 
      * @return minimo entero del intervalo
@@ -43,7 +42,7 @@ public class Intervalo{
     public int getMin() {
         return min;
     }
-    
+
     /**
      * Obtiene el maximo del intervalo
      * 

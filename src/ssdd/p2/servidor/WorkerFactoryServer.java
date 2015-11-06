@@ -22,8 +22,8 @@ import ssdd.p2.interfase.Worker;
 import ssdd.p2.interfase.WorkerFactory;
 
 /**
- * Implementacion del metodo remoto dameWorkers,que obtiene
- * referencias a servidores de calculo.
+ * Implementacion del metodo remoto dameWorkers,que obtiene referencias a
+ * servidores de calculo.
  * 
  * @author Juan Vela y Marta Frias
  * 
@@ -32,62 +32,61 @@ import ssdd.p2.interfase.WorkerFactory;
 public class WorkerFactoryServer extends UnicastRemoteObject
         implements WorkerFactory {
 
-    /** Direccion ip donde se encuentra el servidor de registro*/
-	private String host;
+    /** Direccion ip donde se encuentra el servidor de registro */
+    private String host;
 
-	/**
+    /**
      * Metodo constructor
      * 
-     * @param ipRegistro direccion ip donde se encuentra el servidor
-     *           de registro
+     * @param ipRegistro direccion ip donde se encuentra el servidor de registro
      * @throws RemoteException
      */
-	public WorkerFactoryServer(String ipRegistro)
-            throws RemoteException {
+    public WorkerFactoryServer(String ipRegistro) throws RemoteException {
         super();
         host = ipRegistro;
     }
 
-	@Override
-    public ArrayList<Worker> dameWorkers(int n)
-            throws RemoteException {
-		
-		ArrayList<Worker> workers;		
-		Registry registry = LocateRegistry.getRegistry(host);
-		String[] nombres = registry.list();
-		int numServers = 0;
-		final Pattern wPattern = Pattern.compile("Worker\\d+");
-		
-		for (int i = 0; i < nombres.length && numServers < n; i++) {
+    @Override
+    public ArrayList<Worker> dameWorkers(int n) throws RemoteException {
+
+        System.out.printf("Pedido de %d workers\n", n);
+
+        ArrayList<Worker> workers;
+        Registry registry = LocateRegistry.getRegistry(host);
+        String[] nombres = registry.list();
+        int numServers = 0;
+        final Pattern wPattern = Pattern.compile("Worker\\d+");
+
+        for (int i = 0; i < nombres.length && numServers < n; i++) {
             Matcher matcher = wPattern.matcher(nombres[i]);
-            
+
             if (matcher.matches()) {
                 numServers++;
             }
         }
-		workers = new ArrayList<Worker>(numServers);
+        workers = new ArrayList<Worker>(numServers);
 
-		int asignados = 0;
-		int i = 0;
-		
-		while (asignados < numServers && i < nombres.length) {
-			Matcher matcher = wPattern.matcher(nombres[i]);
-			
-			if (matcher.matches()) {
-				try {
-					workers.add((Worker)registry.lookup(nombres[i]));
-					asignados++;
-				} catch (NotBoundException e) {
-				    
-					// no deberia ocurrir
-					System.err.println("ERROR: " + nombres[i]
-							+ " no encontrado.");
-				}
-			}
-			i++;
-		}
+        int asignados = 0;
+        int i = 0;
 
-		return workers;
-	}
+        while (asignados < numServers && i < nombres.length) {
+            Matcher matcher = wPattern.matcher(nombres[i]);
+
+            if (matcher.matches()) {
+                try {
+                    workers.add((Worker) registry.lookup(nombres[i]));
+                    asignados++;
+                } catch (NotBoundException e) {
+
+                    // no deberia ocurrir
+                    System.err.println(
+                            "ERROR: " + nombres[i] + " no encontrado.");
+                }
+            }
+            i++;
+        }
+
+        return workers;
+    }
 
 }
