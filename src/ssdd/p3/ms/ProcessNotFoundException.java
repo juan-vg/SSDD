@@ -5,15 +5,15 @@ package ssdd.p3.ms;
  * 
  */
 public class ProcessNotFoundException extends Exception {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	/**
-	 * Se lanza cuando un proceso no se encuentra en el fichero de red.
-	 * 
-	 * @param msg Mensaje de error.
-	 * 
-	 */
-	public ProcessNotFoundException(String msg){
-		super(msg);
-	}
+    /**
+     * Se lanza cuando un proceso no se encuentra en el fichero de red.
+     * 
+     * @param msg Mensaje de error.
+     * 
+     */
+    public ProcessNotFoundException(String msg) {
+        super(msg);
+    }
 }

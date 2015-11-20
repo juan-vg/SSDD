@@ -15,9 +15,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * Clase que se encarga de gestionar un buzon de mensajes. Recibe mensajes
- * y los añade al buzon mientras no este lleno y no este activada la peticion
- * de parada.
+ * Clase que se encarga de gestionar un buzon de mensajes. Recibe mensajes y los
+ * añade al buzon mientras no este lleno y no este activada la peticion de
+ * parada.
  * 
  * @author Juan Vela
  * @author Marta Frias
@@ -25,88 +25,112 @@ import java.net.Socket;
  */
 public class MessageSystemSlave implements Runnable {
 
-	/** Buzon de mensajes */
-	private InBox inBox;
+    /** Buzon de mensajes */
+    private InBox inBox;
 
-	/** Peticion de parada */
-	private boolean stopRequest;
+    /** Peticion de parada */
+    private boolean stopRequest;
 
-	/** Numero de puerto en el que debe esperar nuevas conexiones */
-	private int port;
+    /** Numero de puerto en el que debe esperar nuevas conexiones */
+    private int port;
 
-	/**
-	 * Crea una instancia de MessageSystemSlave
-	 * 
-	 * @param inBox
-	 *            buzon de mensajes
-	 * @param port
-	 *            puerto en el que debe esperar nuevas conexiones
-	 */
-	public MessageSystemSlave(InBox inBox, int port) {
+    /**
+     * Crea una instancia de MessageSystemSlave
+     * 
+     * @param inBox buzon de mensajes
+     * @param port puerto en el que debe esperar nuevas conexiones
+     */
+    public MessageSystemSlave(InBox inBox, int port) {
 
-		this.stopRequest = false;
-		this.inBox = inBox;
-		this.port = port;
-	}
+        this.stopRequest = false;
+        this.inBox = inBox;
+        this.port = port;
+    }
 
-	/** Activa la peticion de parada*/
-	public void stop() {
-		stopRequest = true;
-	}
+    /** Activa la peticion de parada */
+    public void stop() {
+        stopRequest = true;
+    }
 
-	@Override
-	public void run() {
-		
-		ServerSocket sSocket = null;
+    /**
+     * Ejecuta concurrente e indefinidamente una espera de conexiones. Las
+     * conexiones se atienden secuencialmente.
+     */
+    @Override
+    public void run() {
 
-		try {
-			sSocket = new ServerSocket(port);
-			
-		} catch (IOException e) {
-			System.err.println("ERROR: " + e.getMessage());
-			System.exit(1);
-		}
+        ServerSocket receiver = null;
 
-		Socket socket = null;
-		ObjectInputStream ois = null;
+        try {
+            receiver = new ServerSocket(port);
 
-		while (!stopRequest) {
+            // ejecutar hasta que se solicite su parada
+            while (!stopRequest) {
+                manageSender(receiver);
+            }
 
-			try {
-				socket = sSocket.accept();
+        } catch (IOException e) {
+            System.err.println("ERROR: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
-				ois = new ObjectInputStream(socket.getInputStream());
+    /**
+     * Atiende y recibe el envio de un mensaje. El mensaje se encola en el buzon
+     * de entrada asociado si hay hueco, o se descarta si no lo hay
+     * 
+     * @param receiver - Socket de servidor encargado de recibir las conexiones
+     */
+    private void manageSender(ServerSocket receiver) {
 
-				Serializable msg = (Serializable) ois.readObject();
-				inBox.addMsg(msg);
+        Socket sender = null;
+        ObjectInputStream senderInput = null;
 
-			} catch (IOException e) {
-				System.err.println("ERROR: " + e.getMessage());
+        try {
+            sender = receiver.accept();
 
-			} catch (ClassNotFoundException e) {
-				System.err.println("ERROR: " + e.getMessage());
+            senderInput = new ObjectInputStream(sender.getInputStream());
 
-			} finally {
+            Serializable msg = (Serializable) senderInput.readObject();
 
-				if (socket != null) {
+            // si no se puede entregar el mensaje -> mostrar error
+            if (!inBox.addMsg(msg)) {
+                System.err.printf("ERROR: Se ha descartado el siguiente mensaje"
+                        + " porque el buzon esta lleno\n%s\n", msg.toString());
+            }
 
-					try {
-						socket.close();
+        } catch (IOException e) {
+            System.err.println("ERROR: " + e.getMessage());
+            e.printStackTrace();
 
-					} catch (IOException e) {
-						System.err.println("ERROR: " + e.getMessage());
-					}
-				}
-				if (ois != null) {
+        } catch (ClassNotFoundException e) {
+            System.err.println("ERROR: " + e.getMessage());
+            e.printStackTrace();
 
-					try {
-						ois.close();
+        } finally {
 
-					} catch (IOException e) {
-						System.err.println("ERROR: " + e.getMessage());
-					}
-				}
-			}
-		}
-	}
+            if (senderInput != null) {
+
+                try {
+                    senderInput.close();
+
+                } catch (IOException e) {
+                    System.err.println("ERROR: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+
+            if (sender != null) {
+
+                try {
+                    sender.close();
+
+                } catch (IOException e) {
+                    System.err.println("ERROR: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+
+        }
+    }
 }
