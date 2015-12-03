@@ -9,7 +9,7 @@
  * Este código puede ser reproducido y modificado con libertad,
  * mientras se mantenga su autoría.
  */
-package ssdd.p4.p4;
+package ssdd.p4.aplicacion;
 
 import java.awt.*;
 import java.awt.event.*;

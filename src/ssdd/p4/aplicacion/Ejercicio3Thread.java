@@ -6,7 +6,7 @@
  * DESCRIPCION: Clase que gestiona un proceso que envia y recibe mensajes
  */
 
-package ssdd.p4.p4;
+package ssdd.p4.aplicacion;
 
 import java.io.File;
 import java.io.FileNotFoundException;

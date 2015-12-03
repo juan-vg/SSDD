@@ -6,7 +6,7 @@
  * DESCRIPCION: Aplicacion que crea una sala virtual de chat
  */
 
-package ssdd.p4.p4;
+package ssdd.p4.aplicacion;
 
 import java.awt.event.*;
 import java.io.FileNotFoundException;

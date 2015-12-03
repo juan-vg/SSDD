@@ -7,7 +7,7 @@
  * 				y almacena sus eventos de recepcion
  */
 
-package ssdd.p4.p4;
+package ssdd.p4.aplicacion;
 
 import java.io.FileNotFoundException;
 
